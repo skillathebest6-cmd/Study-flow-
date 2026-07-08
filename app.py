@@ -7,6 +7,10 @@ load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key')
 
+# Importer et enregistrer les routes
+from routes.auth import auth_bp
+app.register_blueprint(auth_bp, url_prefix='/auth')
+
 @app.route('/')
 def index():
     return render_template('base.html')
