@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% block title %}Mon Tableau de Bord{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-label">Menu Principal</div>
+<a href="{{ url_for('auth.dashboard') }}" class="sidebar-link active">
+  <i class="fas fa-home"></i> Tableau de bord
+</a>
+<a href="{{ url_for('auth.documents') }}" class="sidebar-link">
+  <i class="fas fa-folder-open"></i> Mes Documents
+</a>
+<a href="{{ url_for('auth.payments') }}" class="sidebar-link">
+  <i class="fas fa-credit-card"></i> Mes Paiements
+</a>
+<a href="{{ url_for('auth.notifications') }}" class="sidebar-link">
+  <i class="fas fa-bell"></i> Notifications
+</a>
+<a href="{{ url_for('auth.suivi') }}" class="sidebar-link">
+  <i class="fas fa-route"></i> Suivi Dossier
+</a>
+<div class="nav-label">Mon Compte</div>
+<a href="{{ url_for('auth.profile') }}" class="sidebar-link">
+  <i class="fas fa-user"></i> Mon Profil
+</a>
+{% endblock %}
+
+{% block page_title %}Tableau de Bord{% endblock %}
+
+{% block content %}
+<!-- BIENVENUE -->
+<div style="background:linear-gradient(135deg,#0D1B3E,#1A56E8);border-radius:16px;padding:24px 28px;color:#fff;margin-bottom:24px;position:relative;overflow:hidden;">
+  <div style="position:absolute;top:-40px;right:-40px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.06);"></div>
+  <div style="position:relative;z-index:1;">
+    <div style="font-size:13px;opacity:.7;margin-bottom:4px;">Bonjour 👋</div>
+    <div style="font-size:24px;font-weight:800;margin-bottom:6px;">
+      {% if profile %}{{ profile.full_name }}{% else %}Étudiant{% endif %}
+    </div>
+    <div style="font-size:13px;opacity:.8;margin-bottom:16px;">
+      {% if profile %}
+        Destination : <b>{{ profile.destination_country or 'Non définie' }}</b> &nbsp;•&nbsp;
+        Statut : <b>{{ profile.status | capitalize }}</b>
+      {% endif %}
+    </div>
+    <div style="background:rgba(255,255,255,.1);border-radius:8px;padding:12px 16px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-size:12px;font-weight:600;">Progression du dossier</span>
+        <span style="font-size:13px;font-weight:800;">
+          {% if profile %}
+            {% set total = profile.documents | length %}
+            {% set valides = profile.documents | selectattr('status','eq','validé') | list | length %}
+            {% if total > 0 %}{{ ((valides / total) * 100) | int }}%{% else %}0%{% endif %}
+          {% else %}0%{% endif %}
+        </span>
+      </div>
+      <div style="height:6px;background:rgba(255,255,255,.2);border-radius:999px;">
+        {% if profile %}
+          {% set total = profile.documents | length %}
+          {% set valides = profile.documents | selectattr('status','eq','validé') | list | length %}
+          {% set pct = ((valides / total) * 100) | int if total > 0 else 0 %}
+        {% else %}{% set pct = 0 %}{% endif %}
+        <div style="width:{{ pct }}%;height:100%;background:#38BDF8;border-radius:999px;transition:width .5s;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px;">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#EFF6FF;">
+      <i class="fas fa-folder" style="color:#1A56E8;"></i>
+    </div>
+    <div>
+      <div class="stat-label">Documents</div>
+      <div class="stat-value">{{ profile.documents | length if profile else 0 }}</div>
+      <div style="font-size:11px;color:#64748B;margin-top:3px;">déposés</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#ECFDF5;">
+      <i class="fas fa-check-circle" style="color:#10B981;"></i>
+    </div>
+    <div>
+      <div class="stat-label">Validés</div>
+      <div class="stat-value">
+        {{ profile.documents | selectattr('status','eq','validé') | list | length if profile else 0 }}
+      </div>
+      <div style="font-size:11px;color:#10B981;margin-top:3px;">approuvés</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#FFFBEB;">
+      <i class="fas fa-clock" style="color:#F59E0B;"></i>
+    </div>
+    <div>
+      <div class="stat-label">En attente</div>
+      <div class="stat-value">
+        {{ profile.documents | selectattr('status','eq','en_attente') | list | length if profile else 0 }}
+      </div>
+      <div style="font-size:11px;color:#F59E0B;margin-top:3px;">à valider</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#FFF1F2;">
+      <i class="fas fa-credit-card" style="color:#F43F5E;"></i>
+    </div>
+    <div>
+      <div class="stat-label">Paiements</div>
+      <div class="stat-value">{{ profile.payments | length if profile else 0 }}</div>
+      <div style="font-size:11px;color:#64748B;margin-top:3px;">transactions</div>
+    </div>
+  </div>
+</div>
+
+<!-- DOCUMENTS + NOTIFS -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+  <div class="sf-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:700;color:#0D1B3E;">
+        <i class="fas fa-folder-open" style="color:#1A56E8;margin-right:8px;"></i>Mes Documents
+      </div>
+      <a href="{{ url_for('auth.documents') }}" style="font-size:12px;color:#1A56E8;font-weight:600;text-decoration:none;">Voir tout →</a>
+    </div>
+    {% if profile and profile.documents %}
+      {% for doc in profile.documents[:4] %}
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #F1F5F9;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:34px;height:34px;border-radius:8px;background:#F8FAFC;border:1px solid #E2E8F0;display:flex;align-items:center;justify-content:center;color:#64748B;">
+            <i class="fas fa-file-alt"></i>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#0D1B3E;">{{ doc.name }}</div>
+            <div style="font-size:11px;color:#94A3B8;">{{ doc.uploaded_at.strftime('%d/%m/%Y') }}</div>
+          </div>
+        </div>
+        <span class="badge-status {% if doc.status == 'validé' %}bs-valide{% elif doc.status == 'rejeté' %}bs-rejete{% else %}bs-attente{% endif %}">
+          {{ doc.status }}
+        </span>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div style="text-align:center;padding:24px;color:#94A3B8;">
+        <i class="fas fa-folder-open" style="font-size:32px;margin-bottom:8px;display:block;"></i>
+        Aucun document déposé
+        <br><a href="{{ url_for('auth.documents') }}" style="color:#1A56E8;font-weight:600;font-size:13px;">Déposer maintenant →</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px;">
+    <div class="sf-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div style="font-size:15px;font-weight:700;color:#0D1B3E;">
+          <i class="fas fa-bell" style="color:#F59E0B;margin-right:8px;"></i>Notifications
+        </div>
+        <a href="{{ url_for('auth.notifications') }}" style="font-size:12px;color:#1A56E8;font-weight:600;text-decoration:none;">Tout voir →</a>
+      </div>
+      {% if notifs %}
+        {% for n in notifs %}
+        <div style="display:flex;gap:10px;padding:9px 0;border-bottom:1px solid #F1F5F9;">
+          <div style="width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;
+            {% if n.type == 'success' %}background:#10B981;{% elif n.type == 'danger' %}background:#F43F5E;{% else %}background:#1A56E8;{% endif %}"></div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#0D1B3E;">{{ n.title }}</div>
+            <div style="font-size:12px;color:#64748B;">{{ n.content[:60] }}{% if n.content|length > 60 %}...{% endif %}</div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div style="text-align:center;padding:16px;color:#94A3B8;font-size:13px;">Aucune notification</div>
+      {% endif %}
+    </div>
+
+    <div class="sf-card">
+      <div style="font-size:15px;font-weight:700;color:#0D1B3E;margin-bottom:14px;">
+        <i class="fas fa-credit-card" style="color:#10B981;margin-right:8px;"></i>Paiements récents
+      </div>
+      {% if profile and profile.payments %}
+        {% for p in profile.payments[:3] %}
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #F1F5F9;">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#0D1B3E;">{{ p.service }}</div>
+            <div style="font-size:11px;color:#94A3B8;">{{ p.created_at.strftime('%d/%m/%Y') }}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:13px;font-weight:700;color:#0D1B3E;">{{ "{:,.0f}".format(p.amount) }} {{ p.currency }}</div>
+            <span class="badge-status {% if p.status == 'payé' %}bs-valide{% else %}bs-attente{% endif %}">{{ p.status }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div style="text-align:center;padding:16px;color:#94A3B8;font-size:13px;">Aucun paiement</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- ETAPES -->
+<div class="sf-card">
+  <div style="font-size:15px;font-weight:700;color:#0D1B3E;margin-bottom:20px;">
+    <i class="fas fa-route" style="color:#1A56E8;margin-right:8px;"></i>Étapes de votre dossier
+  </div>
+  <div style="display:flex;overflow-x:auto;padding-bottom:4px;">
+    {% set etapes = [('Inscription','check','#10B981',True),('Documents','clock','#F59E0B',True),('Visa','circle','#E2E8F0',False),('Logement','circle','#E2E8F0',False),('Assurance','circle','#E2E8F0',False),('Départ','circle','#E2E8F0',False)] %}
+    {% for nom, icon, color, done in etapes %}
+    <div style="flex:1;text-align:center;position:relative;min-width:80px;">
+      {% if not loop.last %}
+      <div style="position:absolute;top:15px;left:55%;right:-45%;height:2px;background:{% if done %}#10B981{% else %}#E2E8F0{% endif %};z-index:0;"></div>
+      {% endif %}
+      <div style="width:30px;height:30px;border-radius:50%;background:{% if icon == 'check' %}#10B981{% elif icon == 'clock' %}#FFFBEB{% else %}#F8FAFC{% endif %};border:2px solid {{ color }};display:flex;align-items:center;justify-content:center;margin:0 auto 8px;position:relative;z-index:1;">
+        <i class="fas fa-{{ icon }}" style="font-size:11px;color:{{ color }};"></i>
+      </div>
+      <div style="font-size:11px;font-weight:600;color:#64748B;">{{ nom }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

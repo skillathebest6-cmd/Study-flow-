@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Suivi Dossier{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-label">Menu Principal</div>
+<a href="{{ url_for('auth.dashboard') }}" class="sidebar-link">
+  <i class="fas fa-home"></i> Tableau de bord
+</a>
+<a href="{{ url_for('auth.documents') }}" class="sidebar-link">
+  <i class="fas fa-folder-open"></i> Mes Documents
+</a>
+<a href="{{ url_for('auth.payments') }}" class="sidebar-link">
+  <i class="fas fa-credit-card"></i> Mes Paiements
+</a>
+<a href="{{ url_for('auth.notifications') }}" class="sidebar-link">
+  <i class="fas fa-bell"></i> Notifications
+</a>
+<a href="{{ url_for('auth.suivi') }}" class="sidebar-link active">
+  <i class="fas fa-route"></i> Suivi Dossier
+</a>
+<div class="nav-label">Mon Compte</div>
+<a href="{{ url_for('auth.profile') }}" class="sidebar-link">
+  <i class="fas fa-user"></i> Mon Profil
+</a>
+{% endblock %}
+
+{% block page_title %}Suivi du Dossier{% endblock %}
+
+{% block content %}
+
+<!-- STATUT GLOBAL -->
+<div style="background:linear-gradient(135deg,#0D1B3E,#1A56E8);border-radius:16px;padding:24px;color:#fff;margin-bottom:24px;">
+  <div style="font-size:13px;opacity:.7;margin-bottom:6px;">Statut actuel de votre dossier</div>
+  <div style="font-size:22px;font-weight:800;margin-bottom:4px;">
+    {% if profile %}{{ profile.status | capitalize }}{% else %}Nouveau{% endif %}
+  </div>
+  <div style="font-size:13px;opacity:.8;">
+    {% if profile %}
+      {{ profile.full_name }} •
+      Destination : {{ profile.destination_country or 'Non définie' }}
+    {% endif %}
+  </div>
+</div>
+
+<!-- ETAPES VERTICALES -->
+<div class="sf-card">
+  <div style="font-size:15px;font-weight:700;color:#0D1B3E;margin-bottom:22px;">
+    <i class="fas fa-route" style="color:#1A56E8;margin-right:8px;"></i>
+    Progression de votre dossier
+  </div>
+
+  {% set etapes = [
+    ('Inscription', 'Compte créé avec succès', 'check', 'done'),
+    ('Dépôt des documents', 'Envoyez vos documents requis', 'folder-open', 'active'),
+    ('Validation des documents', 'Vérification par notre équipe', 'search', 'pending'),
+    ('Demande de visa', 'Constitution du dossier consulaire', 'passport', 'pending'),
+    ('Recherche logement', 'Trouver votre logement étudiant', 'home', 'pending'),
+    ('Assurance voyage', 'Souscription assurance obligatoire', 'shield-alt', 'pending'),
+    ('Billet d\'avion', 'Réservation de votre vol', 'plane', 'pending'),
+    ('Départ', 'Bon voyage !', 'plane-departure', 'pending')
+  ] %}
+
+  {% for nom, desc, icon, etat in etapes %}
+  <div style="display:flex;gap:16px;margin-bottom:{% if not loop.last %}0{% else %}0{% endif %};">
+    <!-- LIGNE VERTICALE -->
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+        {% if etat == 'done' %}background:#10B981;border:2px solid #10B981;
+        {% elif etat == 'active' %}background:#1A56E8;border:2px solid #1A56E8;
+        {% else %}background:#fff;border:2px solid #E2E8F0;{% endif %}">
+        <i class="fas fa-{{ icon }}" style="font-size:13px;
+          {% if etat == 'done' or etat == 'active' %}color:#fff;
+          {% else %}color:#CBD5E1;{% endif %}">
+        </i>
+      </div>
+      {% if not loop.last %}
+      <div style="width:2px;height:40px;
+        {% if etat == 'done' %}background:#10B981;
+        {% else %}background:#E2E8F0;{% endif %}">
+      </div>
+      {% endif %}
+    </div>
+    <!-- CONTENU -->
+    <div style="padding-bottom:{% if not loop.last %}20px{% else %}0{% endif %};">
+      <div style="font-size:14px;font-weight:700;margin-bottom:2px;
+        {% if etat == 'done' %}color:#10B981;
+        {% elif etat == 'active' %}color:#1A56E8;
+        {% else %}color:#94A3B8;{% endif %}">
+        {{ nom }}
+        {% if etat == 'done' %}
+          <span style="font-size:11px;background:#ECFDF5;color:#10B981;padding:2px 8px;border-radius:999px;margin-left:6px;">Terminé</span>
+        {% elif etat == 'active' %}
+          <span style="font-size:11px;background:#EFF6FF;color:#1A56E8;padding:2px 8px;border-radius:999px;margin-left:6px;">En cours</span>
+        {% endif %}
+      </div>
+      <div style="font-size:12px;color:#94A3B8;">{{ desc }}</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- SERVICES -->
+<div style="margin-top:20px;">
+  <div style="font-size:15px;font-weight:700;color:#0D1B3E;margin-bottom:14px;">
+    <i class="fas fa-concierge-bell" style="color:#1A56E8;margin-right:8px;"></i>
+    Nos services disponibles
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">
+    {% set services = [
+      ('🛂','Visa étudiant','Assistance complète'),
+      ('🏠','Logement','Recherche garantie'),
+      ('🛡️','Assurance','Couverture voyage'),
+      ('✈️','Billet avion','Meilleurs tarifs'),
+      ('🏦','AVI / Caution','Caution bancaire')
+    ] %}
+    {% for emoji, titre, desc in services %}
+    <div style="border:1px solid #E2E8F0;border-radius:12px;padding:16px;text-align:center;background:#fff;">
+      <div style="font-size:26px;margin-bottom:6px;">{{ emoji }}</div>
+      <div style="font-size:13px;font-weight:700;color:#0D1B3E;">{{ titre }}</div>
+      <div style="font-size:11px;color:#94A3B8;margin-top:2px;">{{ desc }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

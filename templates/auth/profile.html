@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Mon Profil{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-label">Menu Principal</div>
+<a href="{{ url_for('auth.dashboard') }}" class="sidebar-link">
+  <i class="fas fa-home"></i> Tableau de bord
+</a>
+<a href="{{ url_for('auth.documents') }}" class="sidebar-link">
+  <i class="fas fa-folder-open"></i> Mes Documents
+</a>
+<a href="{{ url_for('auth.payments') }}" class="sidebar-link">
+  <i class="fas fa-credit-card"></i> Mes Paiements
+</a>
+<a href="{{ url_for('auth.notifications') }}" class="sidebar-link">
+  <i class="fas fa-bell"></i> Notifications
+</a>
+<a href="{{ url_for('auth.suivi') }}" class="sidebar-link">
+  <i class="fas fa-route"></i> Suivi Dossier
+</a>
+<div class="nav-label">Mon Compte</div>
+<a href="{{ url_for('auth.profile') }}" class="sidebar-link active">
+  <i class="fas fa-user"></i> Mon Profil
+</a>
+{% endblock %}
+
+{% block page_title %}Mon Profil{% endblock %}
+
+{% block content %}
+
+<!-- EN-TETE PROFIL -->
+<div style="background:linear-gradient(135deg,#0D1B3E,#1A56E8);border-radius:16px;padding:24px;color:#fff;margin-bottom:24px;display:flex;align-items:center;gap:20px;">
+  <div style="width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,.2);border:3px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;flex-shrink:0;">
+    {% if profile %}{{ profile.first_name[0] if profile.first_name else '?' }}{% endif %}
+  </div>
+  <div>
+    <div style="font-size:22px;font-weight:800;">
+      {% if profile %}{{ profile.full_name }}{% else %}Mon Profil{% endif %}
+    </div>
+    <div style="font-size:13px;opacity:.8;margin-top:4px;">
+      {{ current_user.email }}
+    </div>
+    <div style="margin-top:8px;">
+      <span style="background:rgba(255,255,255,.15);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:600;">
+        {% if profile %}{{ profile.destination_country or 'Destination non définie' }}{% endif %}
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- FORMULAIRE -->
+<div class="sf-card">
+  <div style="font-size:15px;font-weight:700;color:#0D1B3E;margin-bottom:20px;">
+    <i class="fas fa-edit" style="color:#1A56E8;margin-right:8px;"></i>
+    Modifier mes informations
+  </div>
+
+  <form method="POST">
+    <!-- INFOS PERSONNELLES -->
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94A3B8;margin-bottom:12px;">
+      Informations personnelles
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+      <div>
+        <label class="sf-label">Prénom</label>
+        <input type="text" name="first_name" class="sf-input"
+          value="{{ profile.first_name if profile else '' }}" placeholder="Prénom">
+      </div>
+      <div>
+        <label class="sf-label">Nom</label>
+        <input type="text" name="last_name" class="sf-input"
+          value="{{ profile.last_name if profile else '' }}" placeholder="Nom">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+      <div>
+        <label class="sf-label">Téléphone</label>
+        <input type="tel" name="phone" class="sf-input"
+          value="{{ profile.phone if profile else '' }}" placeholder="+224 600 000 000">
+      </div>
+      <div>
+        <label class="sf-label">Nationalité</label>
+        <input type="text" name="nationality" class="sf-input"
+          value="{{ profile.nationality if profile else '' }}" placeholder="Guinéenne">
+      </div>
+    </div>
+    <div style="margin-bottom:20px;">
+      <label class="sf-label">Numéro de passeport</label>
+      <input type="text" name="passport_number" class="sf-input"
+        value="{{ profile.passport_number if profile else '' }}" placeholder="GN123456">
+    </div>
+
+    <!-- INFOS ACADEMIQUES -->
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94A3B8;margin-bottom:12px;padding-top:16px;border-top:1px solid #F1F5F9;">
+      Informations académiques
+    </div>
+    <div style="margin-bottom:14px;">
+      <label class="sf-label">Destination</label>
+      <select name="destination" class="sf-input" style="padding-left:12px;">
+        <option value="">-- Choisir --</option>
+        <option value="France" {% if profile and profile.destination_country == 'France' %}selected{% endif %}>🇫🇷 France</option>
+        <option value="Canada" {% if profile and profile.destination_country == 'Canada' %}selected{% endif %}>🇨🇦 Canada</option>
+        <option value="Belgique" {% if profile and profile.destination_country == 'Belgique' %}selected{% endif %}>🇧🇪 Belgique</option>
+      </select>
+    </div>
+    <div style="margin-bottom:14px;">
+      <label class="sf-label">Formation souhaitée</label>
+      <input type="text" name="program" class="sf-input"
+        value="{{ profile.program if profile else '' }}" placeholder="Ex: Licence Informatique">
+    </div>
+    <div style="margin-bottom:20px;">
+      <label class="sf-label">Université cible</label>
+      <input type="text" name="university" class="sf-input"
+        value="{{ profile.university if profile else '' }}" placeholder="Ex: Université Paris 8">
+    </div>
+
+    <button type="submit" class="btn-sf btn-primary-sf" style="width:100%;justify-content:center;padding:12px;">
+      <i class="fas fa-save"></i> Sauvegarder les modifications
+    </button>
+  </form>
+</div>
+{% endblock %}

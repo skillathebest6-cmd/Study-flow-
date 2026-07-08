@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Documents{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-label">Admin Panel</div>
+<a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">
+  <i class="fas fa-chart-line"></i> Dashboard
+</a>
+<a href="{{ url_for('admin.students') }}" class="sidebar-link">
+  <i class="fas fa-users"></i> Étudiants
+</a>
+<a href="{{ url_for('admin.documents') }}" class="sidebar-link active">
+  <i class="fas fa-file-alt"></i> Documents
+</a>
+<a href="{{ url_for('admin.payments') }}" class="sidebar-link">
+  <i class="fas fa-credit-card"></i> Paiements
+</a>
+<div class="nav-label">Compte</div>
+<a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:rgba(255,100,100,.7);">
+  <i class="fas fa-sign-out-alt"></i> Déconnexion
+</a>
+{% endblock %}
+
+{% block page_title %}Gestion des Documents{% endblock %}
+
+{% block content %}
+
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#FFFBEB;"><i class="fas fa-hourglass" style="color:#F59E0B;"></i></div>
+    <div>
+      <div class="stat-label">En attente</div>
+      <div class="stat-value">{{ pending|length }}</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#ECFDF5;"><i class="fas fa-check" style="color:#10B981;"></i></div>
+    <div>
+      <div class="stat-label">Validés</div>
+      <div class="stat-value">{{ validated|length }}</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#FFF1F2;"><i class="fas fa-times" style="color:#F43F5E;"></i></div>
+    <div>
+      <div class="stat-label">Rejetés</div>
+      <div class="stat-value">{{ rejected|length }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="sf-card">
+  <div style="font-size:15px;font-weight:700;color:#0D1B3E;margin-bottom:16px;">Documents à valider ({{ pending|length }})</div>
+  <table class="sf-table">
+    <thead>
+      <tr>
+        <th>Étudiant</th>
+        <th>Document</th>
+        <th>Type</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for doc in pending %}
+      <tr>
+        <td>{{ doc.student.full_name }}</td>
+        <td>{{ doc.name }}</td>
+        <td>{{ doc.doc_type }}</td>
+        <td>{{ doc.uploaded_at.strftime('%d/%m/%Y') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

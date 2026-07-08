@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Détail Étudiant{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-label">Admin Panel</div>
+<a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">
+  <i class="fas fa-chart-line"></i> Dashboard
+</a>
+<a href="{{ url_for('admin.students') }}" class="sidebar-link active">
+  <i class="fas fa-users"></i> Étudiants
+</a>
+<a href="{{ url_for('admin.documents') }}" class="sidebar-link">
+  <i class="fas fa-file-alt"></i> Documents
+</a>
+<a href="{{ url_for('admin.payments') }}" class="sidebar-link">
+  <i class="fas fa-credit-card"></i> Paiements
+</a>
+<div class="nav-label">Compte</div>
+<a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:rgba(255,100,100,.7);">
+  <i class="fas fa-sign-out-alt"></i> Déconnexion
+</a>
+{% endblock %}
+
+{% block page_title %}{{ profile.full_name }}{% endblock %}
+
+{% block content %}
+
+<div style="background:linear-gradient(135deg,#0D1B3E,#1A56E8);border-radius:16px;padding:20px;color:#fff;margin-bottom:24px;">
+  <div style="font-size:20px;font-weight:800;margin-bottom:4px;">{{ profile.full_name }}</div>
+  <div style="font-size:13px;opacity:.8;">{{ profile.user.email if profile.user else '-' }} • {{ profile.destination_country or '-' }}</div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+  
+  <div class="sf-card">
+    <div style="font-size:15px;font-weight:700;color:#0D1B3E;margin-bottom:14px;">Informations</div>
+    <div style="font-size:13px;line-height:1.8;">
+      <div><b>Téléphone :</b> {{ profile.phone or '-' }}</div>
+      <div><b>Passeport :</b> {{ profile.passport_number or '-' }}</div>
+      <div><b>Programme :</b> {{ profile.program or '-' }}</div>
+      <div><b>Université :</b> {{ profile.university or '-' }}</div>
+      <div><b>Statut :</b> <span class="badge-status bs-{{ profile.status }}">{{ profile.status }}</span></div>
+    </div>
+  </div>
+
+  <div class="sf-card">
+    <div style="font-size:15px;font-weight:700;color:#0D1B3E;margin-bottom:14px;">Changer le statut</div>
+    <form method="POST" action="{{ url_for('admin.update_student_status', sid=profile.id) }}">
+      <select name="status" class="sf-input" style="padding-left:12px;margin-bottom:10px;">
+        <option value="nouveau" {% if profile.status == 'nouveau' %}selected{% endif %}>Nouveau</option>
+        <option value="en_cours" {% if profile.status == 'en_cours' %}selected{% endif %}>En cours</option>
+        <option value="validé" {% if profile.status == 'validé' %}selected{% endif %}>Validé</option>
+        <option value="refusé" {% if profile.status == 'refusé' %}selected{% endif %}>Refusé</option>
+      </select>
+      <button type="submit" class="btn-sf btn-primary-sf" style="width:100%;justify-content:center;padding:10px;">
+        <i class="fas fa-save"></i> Mettre à jour
+      </button>
+    </form>
+  </div>
+
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px;">
+  
+  <div class="sf-card">
+    <div style="font-size:15px;font-weight:700;color:#0D1B3E;margin-bottom:14px;">Documents ({{ docs|length }})</div>
+    {% for doc in docs %}
+    <div style="padding:10px;background:#F8FAFC;border-radius:8px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#0D1B3E;">{{ doc.name }}</div>
+          <div style="font-size:11px;color:#94A3B8;">{{ doc.uploaded_at.strftime('%d/%m/%Y') }}</div>
+        </div>
+        <span class="badge-status bs-{{ doc.status }}">{{ doc.status }}</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="sf-card">
+    <div style="font-size:15px;font-weight:700;color:#0D1B3E;margin-bottom:14px;">Paiements ({{ payments|length }})</div>
+    {% for p in payments %}
+    <div style="padding:10px;background:#F8FAFC;border-radius:8px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#0D1B3E;">{{ p.service }}</div>
+          <div style="font-size:11px;color:#94A3B8;">{{ p.created_at.strftime('%d/%m/%Y') }}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:13px;font-weight:700;">{{ "{:,.0f}".format(p.amount) }} GNF</div>
+          <span class="badge-status {% if p.status == 'payé' %}bs-valide{% else %}bs-attente{% endif %}">{{ p.status }}</span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Notifications{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-label">Menu Principal</div>
+<a href="{{ url_for('auth.dashboard') }}" class="sidebar-link">
+  <i class="fas fa-home"></i> Tableau de bord
+</a>
+<a href="{{ url_for('auth.documents') }}" class="sidebar-link">
+  <i class="fas fa-folder-open"></i> Mes Documents
+</a>
+<a href="{{ url_for('auth.payments') }}" class="sidebar-link">
+  <i class="fas fa-credit-card"></i> Mes Paiements
+</a>
+<a href="{{ url_for('auth.notifications') }}" class="sidebar-link active">
+  <i class="fas fa-bell"></i> Notifications
+</a>
+<a href="{{ url_for('auth.suivi') }}" class="sidebar-link">
+  <i class="fas fa-route"></i> Suivi Dossier
+</a>
+<div class="nav-label">Mon Compte</div>
+<a href="{{ url_for('auth.profile') }}" class="sidebar-link">
+  <i class="fas fa-user"></i> Mon Profil
+</a>
+{% endblock %}
+
+{% block page_title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="sf-card">
+  <div style="font-size:15px;font-weight:700;color:#0D1B3E;margin-bottom:18px;">
+    <i class="fas fa-bell" style="color:#F59E0B;margin-right:8px;"></i>
+    Toutes les notifications ({{ notifs | length }})
+  </div>
+
+  {% if notifs %}
+    {% for n in notifs %}
+    <div style="display:flex;gap:14px;padding:14px;margin-bottom:10px;border-radius:10px;border:1px solid #F1F5F9;background:{% if not n.is_read %}#F8FAFF{% else %}#FAFAFA{% endif %};">
+      <div style="width:38px;height:38px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+        {% if n.type == 'success' %}background:#ECFDF5;
+        {% elif n.type == 'danger' %}background:#FFF1F2;
+        {% elif n.type == 'warning' %}background:#FFFBEB;
+        {% else %}background:#EFF6FF;{% endif %}">
+        <i class="fas fa-
+          {% if n.type == 'success' %}check
+          {% elif n.type == 'danger' %}times
+          {% elif n.type == 'warning' %}exclamation
+          {% else %}info{% endif %}"
+          style="font-size:14px;
+          {% if n.type == 'success' %}color:#10B981;
+          {% elif n.type == 'danger' %}color:#F43F5E;
+          {% elif n.type == 'warning' %}color:#F59E0B;
+          {% else %}color:#1A56E8;{% endif %}">
+        </i>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:13.5px;font-weight:600;color:#0D1B3E;margin-bottom:3px;">
+          {{ n.title }}
+        </div>
+        <div style="font-size:13px;color:#64748B;margin-bottom:4px;">{{ n.content }}</div>
+        <div style="font-size:11px;color:#94A3B8;">
+          <i class="fas fa-clock" style="margin-right:4px;"></i>
+          {{ n.created_at.strftime('%d/%m/%Y à %H:%M') }}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div style="text-align:center;padding:50px;color:#94A3B8;">
+      <i class="fas fa-bell-slash" style="font-size:40px;margin-bottom:12px;display:block;"></i>
+      <div style="font-weight:600;margin-bottom:4px;">Aucune notification</div>
+      <div style="font-size:12px;">Vous serez notifié des mises à jour de votre dossier</div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

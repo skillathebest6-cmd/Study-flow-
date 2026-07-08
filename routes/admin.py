@@ -1,0 +1,159 @@
+from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask_login import login_required, current_user
+from models.user import User, StudentProfile, Document, Payment, Notification
+from app import db
+from functools import wraps
+
+admin_bp = Blueprint('admin', __name__)
+
+def admin_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.role != 'admin':
+            flash('Accès refusé. Vous n\'êtes pas administrateur.', 'danger')
+            return redirect(url_for('auth.login'))
+        return f(*args, **kwargs)
+    return decorated
+
+@admin_bp.route('/dashboard')
+@login_required
+@admin_required
+def dashboard():
+    total_students = StudentProfile.query.count()
+    validated = StudentProfile.query.filter_by(status='validé').count()
+    pending_docs = Document.query.filter_by(status='en_attente').count()
+    total_revenue = db.session.query(db.func.sum(Payment.amount)).filter_by(status='payé').scalar() or 0
+    
+    recent_students = StudentProfile.query.order_by(StudentProfile.created_at.desc()).limit(8).all()
+    
+    dest_france = StudentProfile.query.filter_by(destination_country='France').count()
+    dest_canada = StudentProfile.query.filter_by(destination_country='Canada').count()
+    dest_belgique = StudentProfile.query.filter_by(destination_country='Belgique').count()
+    
+    status_counts = {
+        'nouveau': StudentProfile.query.filter_by(status='nouveau').count(),
+        'en_cours': StudentProfile.query.filter_by(status='en_cours').count(),
+        'validé': StudentProfile.query.filter_by(status='validé').count(),
+        'refusé': StudentProfile.query.filter_by(status='refusé').count(),
+    }
+    
+    return render_template('admin/dashboard.html',
+        total_students=total_students,
+        validated=validated,
+        pending_docs=pending_docs,
+        total_revenue=total_revenue,
+        recent_students=recent_students,
+        dest_france=dest_france,
+        dest_canada=dest_canada,
+        dest_belgique=dest_belgique,
+        status_counts=status_counts
+    )
+
+@admin_bp.route('/students')
+@login_required
+@admin_required
+def students():
+    q = request.args.get('q', '')
+    status = request.args.get('status', '')
+    destination = request.args.get('destination', '')
+    
+    query = StudentProfile.query
+    if q:
+        query = query.filter(db.or_(
+            StudentProfile.first_name.ilike(f'%{q}%'),
+            StudentProfile.last_name.ilike(f'%{q}%'),
+            StudentProfile.user.has(User.email.ilike(f'%{q}%'))
+        ))
+    if status:
+        query = query.filter_by(status=status)
+    if destination:
+        query = query.filter_by(destination_country=destination)
+    
+    students_list = query.order_by(StudentProfile.created_at.desc()).all()
+    return render_template('admin/students.html',
+        students=students_list, q=q, status=status, destination=destination
+    )
+
+@admin_bp.route('/student/<int:sid>')
+@login_required
+@admin_required
+def student_detail(sid):
+    profile = StudentProfile.query.get_or_404(sid)
+    docs = Document.query.filter_by(student_id=sid).all()
+    payments = Payment.query.filter_by(student_id=sid).all()
+    return render_template('admin/student_detail.html',
+        profile=profile, docs=docs, payments=payments
+    )
+
+@admin_bp.route('/student/<int:sid>/status', methods=['POST'])
+@login_required
+@admin_required
+def update_student_status(sid):
+    profile = StudentProfile.query.get_or_404(sid)
+    new_status = request.form.get('status', profile.status)
+    profile.status = new_status
+    db.session.commit()
+    
+    notif = Notification(
+        user_id=profile.user_id,
+        title="Statut de votre dossier mis à jour",
+        content=f"Votre dossier est maintenant : {new_status}",
+        type="info"
+    )
+    db.session.add(notif)
+    db.session.commit()
+    
+    flash('Statut mis à jour.', 'success')
+    return redirect(url_for('admin.student_detail', sid=sid))
+
+@admin_bp.route('/document/<int:did>/validate', methods=['POST'])
+@login_required
+@admin_required
+def validate_document(did):
+    doc = Document.query.get_or_404(did)
+    action = request.form.get('action')
+    doc.status = 'validé' if action == 'validate' else 'rejeté'
+    doc.rejection_reason = request.form.get('reason', '')
+    db.session.commit()
+    
+    student = doc.student
+    msg_type = 'success' if action == 'validate' else 'danger'
+    notif = Notification(
+        user_id=student.user_id,
+        title=f"Document {doc.name}",
+        content=f"Votre document a été {'validé ✓' if action == 'validate' else 'rejeté ✗'}",
+        type=msg_type
+    )
+    db.session.add(notif)
+    db.session.commit()
+    
+    flash(f'Document {doc.status}.', 'success')
+    return redirect(url_for('admin.student_detail', sid=doc.student_id))
+
+@admin_bp.route('/documents')
+@login_required
+@admin_required
+def documents():
+    all_docs = Document.query.order_by(Document.uploaded_at.desc()).all()
+    pending = [d for d in all_docs if d.status == 'en_attente']
+    validated = [d for d in all_docs if d.status == 'validé']
+    rejected = [d for d in all_docs if d.status == 'rejeté']
+    
+    return render_template('admin/documents.html',
+        all_docs=all_docs,
+        pending=pending,
+        validated=validated,
+        rejected=rejected
+    )
+
+@admin_bp.route('/payments')
+@login_required
+@admin_required
+def payments():
+    all_payments = Payment.query.order_by(Payment.created_at.desc()).all()
+    total = sum(p.amount for p in all_payments if p.status == 'payé')
+    pending = sum(p.amount for p in all_payments if p.status == 'en_attente')
+    
+    return render_template('admin/payments.html',
+        payments=all_payments, total=total, pending=pending
+    )

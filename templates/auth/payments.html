@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Mes Paiements{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-label">Menu Principal</div>
+<a href="{{ url_for('auth.dashboard') }}" class="sidebar-link">
+  <i class="fas fa-home"></i> Tableau de bord
+</a>
+<a href="{{ url_for('auth.documents') }}" class="sidebar-link">
+  <i class="fas fa-folder-open"></i> Mes Documents
+</a>
+<a href="{{ url_for('auth.payments') }}" class="sidebar-link active">
+  <i class="fas fa-credit-card"></i> Mes Paiements
+</a>
+<a href="{{ url_for('auth.notifications') }}" class="sidebar-link">
+  <i class="fas fa-bell"></i> Notifications
+</a>
+<a href="{{ url_for('auth.suivi') }}" class="sidebar-link">
+  <i class="fas fa-route"></i> Suivi Dossier
+</a>
+<div class="nav-label">Mon Compte</div>
+<a href="{{ url_for('auth.profile') }}" class="sidebar-link">
+  <i class="fas fa-user"></i> Mon Profil
+</a>
+{% endblock %}
+
+{% block page_title %}Mes Paiements{% endblock %}
+
+{% block content %}
+
+<!-- STATS -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px;">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#ECFDF5;">
+      <i class="fas fa-check-circle" style="color:#10B981;"></i>
+    </div>
+    <div>
+      <div class="stat-label">Total payé</div>
+      <div class="stat-value" style="font-size:18px;">{{ "{:,.0f}".format(total_paye) }}</div>
+      <div style="font-size:11px;color:#10B981;margin-top:3px;">GNF</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#FFFBEB;">
+      <i class="fas fa-clock" style="color:#F59E0B;"></i>
+    </div>
+    <div>
+      <div class="stat-label">En attente</div>
+      <div class="stat-value" style="font-size:18px;">{{ "{:,.0f}".format(total_attente) }}</div>
+      <div style="font-size:11px;color:#F59E0B;margin-top:3px;">GNF</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#EFF6FF;">
+      <i class="fas fa-list" style="color:#1A56E8;"></i>
+    </div>
+    <div>
+      <div class="stat-label">Transactions</div>
+      <div class="stat-value">{{ payments | length }}</div>
+      <div style="font-size:11px;color:#64748B;margin-top:3px;">au total</div>
+    </div>
+  </div>
+</div>
+
+<!-- LISTE PAIEMENTS -->
+<div class="sf-card">
+  <div style="font-size:15px;font-weight:700;color:#0D1B3E;margin-bottom:18px;">
+    <i class="fas fa-credit-card" style="color:#1A56E8;margin-right:8px;"></i>
+    Historique des paiements
+  </div>
+
+  {% if payments %}
+  <table class="sf-table">
+    <thead>
+      <tr>
+        <th>Service</th>
+        <th>Montant</th>
+        <th>Méthode</th>
+        <th>Date</th>
+        <th>Statut</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in payments %}
+      <tr>
+        <td>
+          <div style="font-weight:600;color:#0D1B3E;">{{ p.service }}</div>
+        </td>
+        <td>
+          <div style="font-weight:700;color:#0D1B3E;">
+            {{ "{:,.0f}".format(p.amount) }} {{ p.currency }}
+          </div>
+        </td>
+        <td>
+          <div style="color:#64748B;font-size:13px;">
+            {{ p.payment_method or 'Non précisé' }}
+          </div>
+        </td>
+        <td>
+          <div style="color:#64748B;font-size:13px;">
+            {{ p.created_at.strftime('%d/%m/%Y') }}
+          </div>
+        </td>
+        <td>
+          <span class="badge-status
+            {% if p.status == 'payé' %}bs-valide
+            {% elif p.status == 'remboursé' %}bs-nouveau
+            {% else %}bs-attente{% endif %}">
+            {% if p.status == 'payé' %}✓ Payé
+            {% elif p.status == 'remboursé' %}↩ Remboursé
+            {% else %}⏳ En attente{% endif %}
+          </span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div style="text-align:center;padding:40px;color:#94A3B8;">
+    <i class="fas fa-credit-card" style="font-size:40px;margin-bottom:12px;display:block;"></i>
+    <div style="font-weight:600;margin-bottom:4px;">Aucun paiement</div>
+    <div style="font-size:12px;">Vos paiements apparaîtront ici</div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- INFO PAIEMENT -->
+<div class="sf-card" style="margin-top:20px;">
+  <div style="font-size:15px;font-weight:700;color:#0D1B3E;margin-bottom:14px;">
+    <i class="fas fa-info-circle" style="color:#F59E0B;margin-right:8px;"></i>
+    Moyens de paiement acceptés
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">
+    <div style="border:1px solid #E2E8F0;border-radius:10px;padding:14px;text-align:center;">
+      <div style="font-size:24px;margin-bottom:6px;">📱</div>
+      <div style="font-size:13px;font-weight:600;color:#0D1B3E;">Orange Money</div>
+    </div>
+    <div style="border:1px solid #E2E8F0;border-radius:10px;padding:14px;text-align:center;">
+      <div style="font-size:24px;margin-bottom:6px;">🏦</div>
+      <div style="font-size:13px;font-weight:600;color:#0D1B3E;">Virement bancaire</div>
+    </div>
+    <div style="border:1px solid #E2E8F0;border-radius:10px;padding:14px;text-align:center;">
+      <div style="font-size:24px;margin-bottom:6px;">💵</div>
+      <div style="font-size:13px;font-weight:600;color:#0D1B3E;">Espèces</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

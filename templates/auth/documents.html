@@ -1,0 +1,401 @@
+{% extends "base.html" %}
+{% block title %}Mes Documents{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-label">Menu Principal</div>
+<a href="{{ url_for('auth.dashboard') }}" class="sidebar-link">
+  <i class="fas fa-home"></i> Tableau de bord
+</a>
+<a href="{{ url_for('auth.documents') }}" class="sidebar-link active">
+  <i class="fas fa-folder-open"></i> Mes Documents
+</a>
+<a href="{{ url_for('auth.payments') }}" class="sidebar-link">
+  <i class="fas fa-credit-card"></i> Mes Paiements
+</a>
+<a href="{{ url_for('auth.notifications') }}" class="sidebar-link">
+  <i class="fas fa-bell"></i> Notifications
+</a>
+<a href="{{ url_for('auth.suivi') }}" class="sidebar-link">
+  <i class="fas fa-route"></i> Suivi Dossier
+</a>
+<div class="nav-label">Mon Compte</div>
+<a href="{{ url_for('auth.profile') }}" class="sidebar-link">
+  <i class="fas fa-user"></i> Mon Profil
+</a>
+{% endblock %}
+
+{% block page_title %}Mes Documents{% endblock %}
+
+{% block extra_css %}
+<style>
+.upload-zone {
+  border: 2px dashed #CBD5E1;
+  border-radius: 12px;
+  padding: 28px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s;
+  background: #F8FAFC;
+}
+.upload-zone:hover, .upload-zone.dragover {
+  border-color: #1A56E8;
+  background: #EFF6FF;
+}
+.upload-zone input[type=file] { display: none; }
+.file-preview {
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 10px;
+  display: none;
+  align-items: center;
+  gap: 10px;
+}
+.file-icon-type {
+  font-size: 11px; font-weight: 700;
+  padding: 4px 6px; border-radius: 4px;
+}
+.pdf-icon { background:#FEE2E2; color:#DC2626; }
+.img-icon { background:#DCFCE7; color:#16A34A; }
+.doc-icon { background:#DBEAFE; color:#2563EB; }
+.doc-type-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.doc-type-btn {
+  border: 1.5px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 10px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .15s;
+  background: #fff;
+  font-family: inherit;
+}
+.doc-type-btn:hover {
+  border-color: #1A56E8;
+  background: #EFF6FF;
+}
+.doc-type-btn.selected {
+  border-color: #1A56E8;
+  background: #EFF6FF;
+}
+.doc-type-btn .emoji { font-size: 20px; display: block; margin-bottom: 4px; }
+.doc-type-btn .label { font-size: 11px; font-weight: 600; color: #0D1B3E; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- STATS -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:24px;">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#EFF6FF;">
+      <i class="fas fa-folder" style="color:#1A56E8;"></i>
+    </div>
+    <div>
+      <div class="stat-label">Total</div>
+      <div class="stat-value">{{ docs | length }}</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#ECFDF5;">
+      <i class="fas fa-check" style="color:#10B981;"></i>
+    </div>
+    <div>
+      <div class="stat-label">Validés</div>
+      <div class="stat-value">{{ docs | selectattr('status','eq','validé') | list | length }}</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#FFFBEB;">
+      <i class="fas fa-clock" style="color:#F59E0B;"></i>
+    </div>
+    <div>
+      <div class="stat-label">En attente</div>
+      <div class="stat-value">{{ docs | selectattr('status','eq','en_attente') | list | length }}</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#FFF1F2;">
+      <i class="fas fa-times" style="color:#F43F5E;"></i>
+    </div>
+    <div>
+      <div class="stat-label">Rejetés</div>
+      <div class="stat-value">{{ docs | selectattr('status','eq','rejeté') | list | length }}</div>
+    </div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1.5fr;gap:20px;">
+
+  <!-- FORMULAIRE -->
+  <div class="sf-card">
+    <div style="font-size:15px;font-weight:700;color:#0D1B3E;margin-bottom:18px;">
+      <i class="fas fa-upload" style="color:#1A56E8;margin-right:8px;"></i>
+      Déposer un document
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" id="uploadForm">
+      <input type="hidden" name="doc_type" id="doc_type_input">
+      <input type="hidden" name="doc_name" id="doc_name_input">
+
+      <!-- STEP 1 : CHOISIR TYPE -->
+      <div id="step1">
+        <div style="font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;">
+          Étape 1 — Choisir le type
+        </div>
+        <div class="doc-type-grid">
+          <button type="button" class="doc-type-btn" onclick="selectType('passeport','🛂','Passeport')">
+            <span class="emoji">🛂</span>
+            <span class="label">Passeport</span>
+          </button>
+          <button type="button" class="doc-type-btn" onclick="selectType('releves_notes','📋','Relevés de notes')">
+            <span class="emoji">📋</span>
+            <span class="label">Relevés de notes</span>
+          </button>
+          <button type="button" class="doc-type-btn" onclick="selectType('diplome','🎓','Diplôme')">
+            <span class="emoji">🎓</span>
+            <span class="label">Diplôme</span>
+          </button>
+          <button type="button" class="doc-type-btn" onclick="selectType('cv','📄','CV')">
+            <span class="emoji">📄</span>
+            <span class="label">CV</span>
+          </button>
+          <button type="button" class="doc-type-btn" onclick="selectType('lettre_motivation','✍️','Lettre de motivation')">
+            <span class="emoji">✍️</span>
+            <span class="label">Lettre de motivation</span>
+          </button>
+          <button type="button" class="doc-type-btn" onclick="selectType('lettre_recommandation','📝','Lettre de recommandation')">
+            <span class="emoji">📝</span>
+            <span class="label">Recommandation</span>
+          </button>
+          <button type="button" class="doc-type-btn" onclick="selectType('acte_naissance','📜','Acte de naissance')">
+            <span class="emoji">📜</span>
+            <span class="label">Acte de naissance</span>
+          </button>
+          <button type="button" class="doc-type-btn" onclick="selectType('photo_identite','📸','Photo d\'identité')">
+            <span class="emoji">📸</span>
+            <span class="label">Photo d'identité</span>
+          </button>
+          <button type="button" class="doc-type-btn" onclick="selectType('justificatif','🏠','Justificatif de domicile')">
+            <span class="emoji">🏠</span>
+            <span class="label">Justificatif domicile</span>
+          </button>
+          <button type="button" class="doc-type-btn" onclick="selectType('certificat_medical','🏥','Certificat médical')">
+            <span class="emoji">🏥</span>
+            <span class="label">Certificat médical</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 2 : UPLOAD FICHIER (caché au début) -->
+      <div id="step2" style="display:none;">
+        <div style="font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;">
+          Étape 2 — Choisir le fichier
+        </div>
+
+        <!-- DOC SELECTIONNE -->
+        <div id="selectedDocBadge" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;margin-bottom:14px;">
+          <span id="selectedEmoji" style="font-size:22px;"></span>
+          <div>
+            <div id="selectedLabel" style="font-size:13px;font-weight:700;color:#0D1B3E;"></div>
+            <div style="font-size:11px;color:#64748B;">Document sélectionné</div>
+          </div>
+          <button type="button" onclick="resetType()"
+            style="margin-left:auto;background:none;border:none;color:#94A3B8;cursor:pointer;font-size:16px;">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- ZONE UPLOAD -->
+        <div class="upload-zone" id="uploadZone"
+          onclick="document.getElementById('fileInput').click()">
+          <input type="file" name="file" id="fileInput"
+            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+            onchange="previewFile(this)">
+          <i class="fas fa-cloud-upload-alt"
+            style="font-size:32px;color:#CBD5E1;margin-bottom:10px;display:block;"></i>
+          <div style="font-size:14px;font-weight:600;color:#64748B;">
+            Cliquez pour choisir un fichier
+          </div>
+          <div style="font-size:12px;color:#94A3B8;margin-top:4px;">
+            PDF, JPG, PNG, DOC, DOCX — Max 10 MB
+          </div>
+        </div>
+
+        <!-- APERCU -->
+        <div class="file-preview" id="filePreview">
+          <span id="fileIconType" class="file-icon-type pdf-icon">PDF</span>
+          <div style="flex:1;">
+            <div id="fileName" style="font-size:13px;font-weight:600;color:#0D1B3E;"></div>
+            <div id="fileSize" style="font-size:11px;color:#64748B;"></div>
+          </div>
+          <i class="fas fa-check-circle" style="color:#10B981;"></i>
+        </div>
+
+        <button type="submit"
+          class="btn-sf btn-primary-sf"
+          style="width:100%;justify-content:center;padding:12px;margin-top:14px;">
+          <i class="fas fa-upload"></i> Envoyer le document
+        </button>
+      </div>
+
+    </form>
+
+    <!-- FORMATS -->
+    <div style="margin-top:16px;padding:12px;background:#F8FAFC;border-radius:8px;">
+      <div style="font-size:12px;font-weight:700;color:#64748B;margin-bottom:8px;">Formats acceptés</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span style="background:#FEE2E2;color:#DC2626;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;">PDF</span>
+        <span style="background:#DCFCE7;color:#16A34A;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;">JPG</span>
+        <span style="background:#DCFCE7;color:#16A34A;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;">PNG</span>
+        <span style="background:#DBEAFE;color:#2563EB;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;">DOC</span>
+        <span style="background:#DBEAFE;color:#2563EB;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;">DOCX</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- LISTE DOCUMENTS -->
+  <div class="sf-card">
+    <div style="font-size:15px;font-weight:700;color:#0D1B3E;margin-bottom:18px;">
+      <i class="fas fa-list" style="color:#1A56E8;margin-right:8px;"></i>
+      Mes documents ({{ docs | length }})
+    </div>
+
+    {% if docs %}
+      {% for doc in docs %}
+      <div style="padding:14px;margin-bottom:10px;border:1px solid #F1F5F9;border-radius:10px;background:#FAFAFA;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:42px;height:42px;border-radius:10px;background:#EFF6FF;display:flex;align-items:center;justify-content:center;">
+              {% if doc.file_name %}
+                {% set ext = doc.file_name.rsplit('.',1)[-1].lower() %}
+                {% if ext == 'pdf' %}
+                  <i class="fas fa-file-pdf" style="color:#DC2626;font-size:18px;"></i>
+                {% elif ext in ['jpg','jpeg','png'] %}
+                  <i class="fas fa-file-image" style="color:#16A34A;font-size:18px;"></i>
+                {% else %}
+                  <i class="fas fa-file-word" style="color:#2563EB;font-size:18px;"></i>
+                {% endif %}
+              {% else %}
+                <i class="fas fa-file-alt" style="color:#1A56E8;font-size:18px;"></i>
+              {% endif %}
+            </div>
+            <div>
+              <div style="font-size:13.5px;font-weight:600;color:#0D1B3E;">{{ doc.name }}</div>
+              <div style="font-size:11px;color:#94A3B8;">
+                {% if doc.file_size %}
+                  {% if doc.file_size > 1024*1024 %}
+                    {{ "%.1f"|format(doc.file_size/1024/1024) }} MB
+                  {% else %}
+                    {{ (doc.file_size//1024) }} KB
+                  {% endif %} •
+                {% endif %}
+                {{ doc.uploaded_at.strftime('%d/%m/%Y') }}
+              </div>
+            </div>
+          </div>
+          <span class="badge-status
+            {% if doc.status == 'validé' %}bs-valide
+            {% elif doc.status == 'rejeté' %}bs-rejete
+            {% else %}bs-attente{% endif %}">
+            {% if doc.status == 'validé' %}✓ Validé
+            {% elif doc.status == 'rejeté' %}✗ Rejeté
+            {% else %}⏳ En attente{% endif %}
+          </span>
+        </div>
+
+        {% if doc.file_url %}
+        <div style="margin-top:10px;">
+          <a href="{{ url_for('auth.uploaded_file', filename=doc.file_url) }}"
+            target="_blank"
+            style="font-size:12px;color:#1A56E8;font-weight:600;text-decoration:none;">
+            <i class="fas fa-eye"></i> Voir le fichier
+          </a>
+        </div>
+        {% endif %}
+
+        {% if doc.status == 'rejeté' and doc.rejection_reason %}
+        <div style="margin-top:8px;padding:8px 10px;background:#FFF1F2;border-radius:6px;font-size:12px;color:#E11D48;">
+          <i class="fas fa-exclamation-circle" style="margin-right:4px;"></i>
+          Motif : {{ doc.rejection_reason }}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    {% else %}
+      <div style="text-align:center;padding:40px;color:#94A3B8;">
+        <i class="fas fa-folder-open" style="font-size:40px;margin-bottom:12px;display:block;"></i>
+        <div style="font-weight:600;">Aucun document</div>
+        <div style="font-size:12px;margin-top:4px;">Déposez votre premier document</div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function selectType(type, emoji, label) {
+  document.getElementById('doc_type_input').value = type;
+  document.getElementById('doc_name_input').value = label;
+  document.getElementById('selectedEmoji').textContent = emoji;
+  document.getElementById('selectedLabel').textContent = label;
+  document.querySelectorAll('.doc-type-btn').forEach(b => b.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  document.getElementById('step1').style.display = 'none';
+  document.getElementById('step2').style.display = 'block';
+}
+
+function resetType() {
+  document.getElementById('step1').style.display = 'block';
+  document.getElementById('step2').style.display = 'none';
+  document.getElementById('doc_type_input').value = '';
+  document.getElementById('doc_name_input').value = '';
+  document.getElementById('filePreview').style.display = 'none';
+  document.getElementById('fileInput').value = '';
+}
+
+function previewFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const size = file.size > 1024*1024
+    ? (file.size/1024/1024).toFixed(1) + ' MB'
+    : Math.round(file.size/1024) + ' KB';
+  document.getElementById('fileName').textContent = file.name;
+  document.getElementById('fileSize').textContent = size;
+  const icon = document.getElementById('fileIconType');
+  if (ext === 'pdf') {
+    icon.textContent = 'PDF'; icon.className = 'file-icon-type pdf-icon';
+  } else if (['jpg','jpeg','png'].includes(ext)) {
+    icon.textContent = 'IMG'; icon.className = 'file-icon-type img-icon';
+  } else {
+    icon.textContent = 'DOC'; icon.className = 'file-icon-type doc-icon';
+  }
+  document.getElementById('filePreview').style.display = 'flex';
+  document.getElementById('uploadZone').style.borderColor = '#10B981';
+  document.getElementById('uploadZone').style.background = '#F0FDF4';
+}
+
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+zone.addEventListener('drop', e => {
+  e.preventDefault();
+  zone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    const input = document.getElementById('fileInput');
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    input.files = dt.files;
+    previewFile(input);
+  }
+});
+</script>
+{% endblock %}

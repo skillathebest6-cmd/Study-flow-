@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Paiements{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-label">Admin Panel</div>
+<a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">
+  <i class="fas fa-chart-line"></i> Dashboard
+</a>
+<a href="{{ url_for('admin.students') }}" class="sidebar-link">
+  <i class="fas fa-users"></i> Étudiants
+</a>
+<a href="{{ url_for('admin.documents') }}" class="sidebar-link">
+  <i class="fas fa-file-alt"></i> Documents
+</a>
+<a href="{{ url_for('admin.payments') }}" class="sidebar-link active">
+  <i class="fas fa-credit-card"></i> Paiements
+</a>
+<div class="nav-label">Compte</div>
+<a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:rgba(255,100,100,.7);">
+  <i class="fas fa-sign-out-alt"></i> Déconnexion
+</a>
+{% endblock %}
+
+{% block page_title %}Gestion des Paiements{% endblock %}
+
+{% block content %}
+
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#ECFDF5;"><i class="fas fa-money-bill" style="color:#10B981;"></i></div>
+    <div>
+      <div class="stat-label">Total payé</div>
+      <div class="stat-value" style="font-size:16px;">{{ "{:,.0f}".format(total) }}</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#FFFBEB;"><i class="fas fa-hourglass" style="color:#F59E0B;"></i></div>
+    <div>
+      <div class="stat-label">En attente</div>
+      <div class="stat-value" style="font-size:16px;">{{ "{:,.0f}".format(pending) }}</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#EFF6FF;"><i class="fas fa-list" style="color:#1A56E8;"></i></div>
+    <div>
+      <div class="stat-label">Transactions</div>
+      <div class="stat-value">{{ payments|length }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="sf-card">
+  <table class="sf-table">
+    <thead>
+      <tr>
+        <th>Étudiant</th>
+        <th>Service</th>
+        <th>Montant</th>
+        <th>Statut</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in payments %}
+      <tr>
+        <td>{{ p.student.full_name }}</td>
+        <td>{{ p.service }}</td>
+        <td>{{ "{:,.0f}".format(p.amount) }} GNF</td>
+        <td><span class="badge-status {% if p.status == 'payé' %}bs-valide{% else %}bs-attente{% endif %}">{{ p.status }}</span></td>
+        <td>{{ p.created_at.strftime('%d/%m/%Y') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
