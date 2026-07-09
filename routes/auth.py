@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_user, logout_user, login_required, current_user
 from models.user import User, StudentProfile, Document, Payment, Notification, ServiceRequest
 from extensions import db
+from utils.document_requirements import get_required_documents, DOC_LABELS
 from datetime import datetime
 from werkzeug.utils import secure_filename
 import os
@@ -128,7 +129,18 @@ def documents():
     docs = Document.query.filter_by(
         student_id=profile.id
     ).order_by(Document.uploaded_at.desc()).all()
-    return render_template('auth/documents.html', profile=profile, docs=docs)
+
+    required_docs = get_required_documents(
+        profile.nationality,
+        profile.destination_country,
+        profile.program_level
+    )
+    submitted_types = [d.doc_type for d in docs]
+    missing_docs = [d for d in required_docs if d not in submitted_types]
+
+    return render_template('auth/documents.html', profile=profile, docs=docs,
+                          required_docs=required_docs, missing_docs=missing_docs,
+                          doc_labels=DOC_LABELS)
 
 @auth_bp.route('/uploads/<filename>')
 @login_required

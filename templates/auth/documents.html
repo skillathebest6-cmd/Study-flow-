@@ -9,6 +9,9 @@
 <a href="{{ url_for('auth.documents') }}" class="sidebar-link active">
   <i class="fas fa-folder-open"></i> Mes Documents
 </a>
+<a href="{{ url_for('auth.services') }}" class="sidebar-link">
+  <i class="fas fa-concierge-bell"></i> Services
+</a>
 <a href="{{ url_for('auth.payments') }}" class="sidebar-link">
   <i class="fas fa-credit-card"></i> Mes Paiements
 </a>
@@ -89,6 +92,21 @@
 {% endblock %}
 
 {% block content %}
+
+{% if missing_docs %}
+<div style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+  <strong style="color:#92400E;"><i class="fas fa-exclamation-triangle"></i> Documents manquants pour votre dossier ({{ profile.destination_country }} - {{ profile.program_level }}):</strong>
+  <ul style="margin:8px 0 0 20px;color:#92400E;">
+    {% for doc in missing_docs %}
+    <li>{{ doc_labels.get(doc, doc) }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% else %}
+<div style="background:#ECFDF5;border:1px solid #10B981;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+  <strong style="color:#065F46;"><i class="fas fa-check-circle"></i> Tous les documents requis ont été soumis!</strong>
+</div>
+{% endif %}
 
 <!-- STATS -->
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:24px;">

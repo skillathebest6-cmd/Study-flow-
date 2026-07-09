@@ -30,6 +30,7 @@ class StudentProfile(db.Model):
     passport_number = db.Column(db.String(30))
     destination_country = db.Column(db.String(50))
     program = db.Column(db.String(200))
+    program_level = db.Column(db.String(20), default='Licence')  # Licence, Master
     university = db.Column(db.String(200))
     status = db.Column(db.String(30), default='nouveau')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

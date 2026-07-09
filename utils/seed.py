@@ -34,16 +34,16 @@ def seed_data():
 
     # Documents
     docs = [
-        ('Passeport', 'validé'),
-        ('Relevés de notes', 'en_attente'),
-        ('Lettre de motivation', 'en_attente'),
-        ('Acte de naissance', 'rejeté'),
+        ('Passeport', 'passeport', 'validé'),
+        ('Relevés de notes', 'releves_notes', 'en_attente'),
+        ('Lettre de motivation', 'lettre_motivation', 'en_attente'),
+        ('Acte de naissance', 'acte_naissance', 'rejeté'),
     ]
-    for nom, statut in docs:
+    for nom, code, statut in docs:
         doc = Document(
             student_id=profile.id,
             name=nom,
-            doc_type=nom.lower().replace(' ', '_'),
+            doc_type=code,
             status=statut
         )
         db.session.add(doc)
