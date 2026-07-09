@@ -50,6 +50,15 @@ def register():
         last_name = request.form.get('last_name', '').strip()
         phone = request.form.get('phone', '').strip()
         destination = request.form.get('destination', '')
+        if len(password) < 8:
+            flash('Le mot de passe doit contenir au moins 8 caractères.', 'danger')
+            return render_template('auth/register.html')
+        if not any(c.isupper() for c in password):
+            flash('Le mot de passe doit contenir au moins une majuscule.', 'danger')
+            return render_template('auth/register.html')
+        if not any(c.isdigit() for c in password):
+            flash('Le mot de passe doit contenir au moins un chiffre.', 'danger')
+            return render_template('auth/register.html')
         if User.query.filter_by(email=email).first():
             flash('Un compte avec cet email existe déjà.', 'danger')
             return render_template('auth/register.html')
