@@ -10,6 +10,8 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(256))
     role = db.Column(db.String(20), default='student')
     is_active = db.Column(db.Boolean, default=True)
+    reset_token = db.Column(db.String(100), nullable=True)
+    reset_token_expiry = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     student_profile = db.relationship('StudentProfile', backref='user', uselist=False, foreign_keys='StudentProfile.user_id')
 

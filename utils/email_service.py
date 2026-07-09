@@ -14,6 +14,7 @@ def send_email(to, subject, body_html):
         return True
     except Exception as e:
         current_app.logger.error(f"Erreur envoi email: {e}")
+        print(f"ERREUR EMAIL: {e}")
         return False
 
 def send_welcome_email(user_email, first_name):
@@ -57,6 +58,29 @@ def send_document_status_email(user_email, first_name, doc_name, status):
             <p>Votre document <strong>{doc_name}</strong> a été
             <span style="color:{color};font-weight:bold;">{status_text}</span>.</p>
             <p>Connectez-vous à votre espace StudyFlow pour plus de détails.</p>
+            <p style="color:#64748B;font-size:13px;margin-top:30px;">L'équipe StudyFlow</p>
+        </div>
+    </div>
+    """
+    return send_email(user_email, subject, body)
+
+def send_password_reset_email(user_email, reset_link):
+    """Email pour réinitialiser le mot de passe"""
+    subject = "Réinitialisation de votre mot de passe - StudyFlow"
+    body = f"""
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+        <div style="background:#0D1B3E;padding:20px;text-align:center;">
+            <h1 style="color:white;margin:0;">StudyFlow</h1>
+        </div>
+        <div style="padding:30px;background:#F8FAFC;">
+            <h2 style="color:#0D1B3E;">Réinitialisation de mot de passe</h2>
+            <p>Vous avez demandé à réinitialiser votre mot de passe. Cliquez sur le bouton ci-dessous :</p>
+            <div style="text-align:center;margin:30px 0;">
+                <a href="{reset_link}" style="background:#1A56E8;color:white;padding:12px 30px;border-radius:8px;text-decoration:none;font-weight:600;">
+                    Réinitialiser mon mot de passe
+                </a>
+            </div>
+            <p style="color:#64748B;font-size:13px;">Ce lien expire dans 1 heure. Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.</p>
             <p style="color:#64748B;font-size:13px;margin-top:30px;">L'équipe StudyFlow</p>
         </div>
     </div>

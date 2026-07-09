@@ -256,3 +256,59 @@ def chat():
         return jsonify({'response': response})
 
     return render_template('student/chat.html')
+
+@auth_bp.route('/forgot-password', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip()
+        user = User.query.filter_by(email=email).first()
+
+        if user:
+            import secrets
+            from datetime import timedelta
+            token = secrets.token_urlsafe(32)
+            user.reset_token = token
+            user.reset_token_expiry = datetime.utcnow() + timedelta(hours=1)
+            db.session.commit()
+
+            reset_link = url_for('auth.reset_password', token=token, _external=True)
+            from utils.email_service import send_password_reset_email
+            send_password_reset_email(user.email, reset_link)
+
+        flash('Si cet email existe, un lien de réinitialisation a été envoyé.', 'success')
+        return redirect(url_for('auth.login'))
+
+    return render_template('auth/forgot_password.html')
+
+@auth_bp.route('/reset-password/<token>', methods=['GET', 'POST'])
+@limiter.limit("10 per minute")
+def reset_password(token):
+    user = User.query.filter_by(reset_token=token).first()
+
+    if not user or not user.reset_token_expiry or user.reset_token_expiry < datetime.utcnow():
+        flash('Ce lien de réinitialisation est invalide ou expiré.', 'danger')
+        return redirect(url_for('auth.forgot_password'))
+
+    if request.method == 'POST':
+        password = request.form.get('password', '')
+
+        if len(password) < 8:
+            flash('Le mot de passe doit contenir au moins 8 caractères.', 'danger')
+            return render_template('auth/reset_password.html', token=token)
+        if not any(c.isupper() for c in password):
+            flash('Le mot de passe doit contenir au moins une majuscule.', 'danger')
+            return render_template('auth/reset_password.html', token=token)
+        if not any(c.isdigit() for c in password):
+            flash('Le mot de passe doit contenir au moins un chiffre.', 'danger')
+            return render_template('auth/reset_password.html', token=token)
+
+        user.set_password(password)
+        user.reset_token = None
+        user.reset_token_expiry = None
+        db.session.commit()
+
+        flash('Mot de passe réinitialisé avec succès ! Connectez-vous.', 'success')
+        return redirect(url_for('auth.login'))
+
+    return render_template('auth/reset_password.html', token=token)
