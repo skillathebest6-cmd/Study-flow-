@@ -1,7 +1,7 @@
 from flask import Flask
 import os
 from dotenv import load_dotenv
-from extensions import db, login_manager
+from extensions import db, login_manager, mail
 
 load_dotenv()
 
@@ -22,9 +22,17 @@ def create_app():
 
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+    app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+    app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USERNAME')
+
     db.init_app(app)
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
+    mail.init_app(app)
 
     from models.user import User
     @login_manager.user_loader

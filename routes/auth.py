@@ -69,6 +69,10 @@ def register():
         )
         db.session.add(notif)
         db.session.commit()
+
+        from utils.email_service import send_welcome_email
+        send_welcome_email(email, first_name)
+
         login_user(user, remember=True)
         return redirect(url_for('auth.dashboard'))
     return render_template('auth/register.html')
