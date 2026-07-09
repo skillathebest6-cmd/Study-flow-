@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyFlow - Mes Services</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background: #F8FAFC; }
+        .navbar { background: #0D1B3E; }
+        .navbar a { color: white !important; }
+        .sidebar { background: #0D1B3E; color: white; min-height: 100vh; padding: 20px; }
+        .sidebar a { color: rgba(255,255,255,0.7); text-decoration: none; display: block; padding: 10px; border-radius: 8px; margin-bottom: 5px; }
+        .sidebar a:hover { background: rgba(255,255,255,0.1); color: white; }
+        .sidebar a.active { background: #1A56E8; color: white; }
+        .main-content { padding: 30px; }
+        .service-card { background: white; border-radius: 12px; padding: 25px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); text-align: center; cursor: pointer; transition: 0.2s; }
+        .service-card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .service-icon { font-size: 36px; color: #1A56E8; margin-bottom: 15px; }
+        .request-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .badge-nouveau { background: #64748B; color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; }
+        .badge-en_cours { background: #F59E0B; color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; }
+        .badge-valide { background: #10B981; color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; }
+        .badge-rejete { background: #F43F5E; color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('auth.dashboard') }}">StudyFlow</a>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-2 sidebar">
+                <h5>Menu</h5>
+                <a href="{{ url_for('auth.dashboard') }}"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="{{ url_for('auth.documents') }}"><i class="fas fa-folder"></i> Documents</a>
+                <a href="#" class="active"><i class="fas fa-concierge-bell"></i> Services</a>
+                <a href="{{ url_for('auth.payments') }}"><i class="fas fa-credit-card"></i> Paiements</a>
+                <a href="{{ url_for('auth.notifications') }}"><i class="fas fa-bell"></i> Notifications</a>
+                <a href="{{ url_for('auth.suivi') }}"><i class="fas fa-map-marker"></i> Suivi</a>
+                <a href="{{ url_for('auth.profile') }}"><i class="fas fa-user"></i> Profil</a>
+            </div>
+
+            <div class="col-md-10 main-content">
+                <h1 style="color: #0D1B3E;">Mes Services</h1>
+                <p style="color: #64748B;">Choisissez un service pour faire une nouvelle demande</p>
+
+                <div class="row">
+                    <div class="col-md-3">
+                        <a href="{{ url_for('auth.new_service_request', service_type='visa') }}" style="text-decoration: none;">
+                            <div class="service-card">
+                                <div class="service-icon"><i class="fas fa-passport"></i></div>
+                                <h5 style="color: #0D1B3E;">Visa Étudiant</h5>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('auth.new_service_request', service_type='logement') }}" style="text-decoration: none;">
+                            <div class="service-card">
+                                <div class="service-icon"><i class="fas fa-home"></i></div>
+                                <h5 style="color: #0D1B3E;">Logement</h5>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('auth.new_service_request', service_type='assurance') }}" style="text-decoration: none;">
+                            <div class="service-card">
+                                <div class="service-icon"><i class="fas fa-shield-alt"></i></div>
+                                <h5 style="color: #0D1B3E;">Assurance Voyage</h5>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('auth.new_service_request', service_type='billet') }}" style="text-decoration: none;">
+                            <div class="service-card">
+                                <div class="service-icon"><i class="fas fa-plane"></i></div>
+                                <h5 style="color: #0D1B3E;">Billet d'avion</h5>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <h3 style="color: #0D1B3E; margin-top: 40px;">Mes demandes</h3>
+
+                {% if requests %}
+                    {% for req in requests %}
+                    <div class="request-card">
+                        <div>
+                            <strong>{{ req.service_type|capitalize }}</strong>
+                            <div style="color: #64748B; font-size: 14px;">{{ req.created_at.strftime('%d/%m/%Y') }}</div>
+                        </div>
+                        <span class="badge-{{ req.status }}">{{ req.status|replace('_', ' ')|capitalize }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color: #64748B;">Aucune demande pour le moment.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, send_from_directory, current_app
 from flask_login import login_user, logout_user, login_required, current_user
-from models.user import User, StudentProfile, Document, Payment, Notification
+from models.user import User, StudentProfile, Document, Payment, Notification, ServiceRequest
 from extensions import db
 from datetime import datetime
 from werkzeug.utils import secure_filename
@@ -186,3 +186,29 @@ def suivi():
 def logout():
     logout_user()
     return redirect(url_for('auth.login'))
+
+@auth_bp.route('/services')
+@login_required
+def services():
+    profile = get_profile()
+    requests = ServiceRequest.query.filter_by(student_id=profile.id).order_by(ServiceRequest.created_at.desc()).all()
+    return render_template('student/services.html', requests=requests)
+
+@auth_bp.route('/services/new/<service_type>', methods=['GET', 'POST'])
+@login_required
+def new_service_request(service_type):
+    profile = get_profile()
+
+    if request.method == 'POST':
+        details = request.form.get('details', '')
+        new_request = ServiceRequest(
+            student_id=profile.id,
+            service_type=service_type,
+            details=details
+        )
+        db.session.add(new_request)
+        db.session.commit()
+        flash(f'Votre demande de {service_type} a été soumise avec succès!', 'success')
+        return redirect(url_for('auth.services'))
+
+    return render_template('student/new_service_request.html', service_type=service_type)

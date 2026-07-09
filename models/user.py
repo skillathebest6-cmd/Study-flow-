@@ -73,3 +73,15 @@ class Notification(db.Model):
     type = db.Column(db.String(30))
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class ServiceRequest(db.Model):
+    __tablename__ = 'service_requests'
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('student_profiles.id'), nullable=False)
+    service_type = db.Column(db.String(50), nullable=False)  # visa, logement, assurance, billet, avi
+    status = db.Column(db.String(20), default='nouveau')  # nouveau, en_cours, valide, rejete
+    details = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    student = db.relationship('StudentProfile', backref='service_requests')
