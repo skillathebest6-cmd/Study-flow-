@@ -127,6 +127,9 @@ def validate_document(did):
     db.session.add(notif)
     db.session.commit()
     
+
+    from utils.email_service import send_document_status_email
+    send_document_status_email(student.user.email, student.first_name, doc.name, doc.status)
     flash(f'Document {doc.status}.', 'success')
     return redirect(url_for('admin.student_detail', sid=doc.student_id))
 
