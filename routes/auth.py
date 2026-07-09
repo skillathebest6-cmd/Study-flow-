@@ -224,3 +224,20 @@ def new_service_request(service_type):
         return redirect(url_for('auth.services'))
 
     return render_template('student/new_service_request.html', service_type=service_type)
+
+@auth_bp.route('/chat', methods=['GET', 'POST'])
+@login_required
+def chat():
+    from utils.ai_service import chat_with_ai
+    profile = get_profile()
+
+    if request.method == 'POST':
+        from flask import jsonify
+        message = request.json.get('message', '').strip()
+        if not message:
+            return jsonify({'response': 'Veuillez écrire un message.'})
+
+        response = chat_with_ai(profile, message)
+        return jsonify({'response': response})
+
+    return render_template('student/chat.html')
