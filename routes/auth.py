@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, send_from_directory, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from models.user import User, StudentProfile, Document, Payment, Notification, ServiceRequest
-from extensions import db
+from extensions import db, limiter
 from utils.document_requirements import get_required_documents, DOC_LABELS
 from datetime import datetime
 from werkzeug.utils import secure_filename
@@ -19,6 +19,7 @@ def get_profile():
     return StudentProfile.query.filter_by(user_id=current_user.id).first()
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit("10 per minute")
 def login():
     if current_user.is_authenticated:
         if current_user.role == 'admin':
@@ -40,6 +41,7 @@ def login():
     return render_template('auth/login.html')
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def register():
     if request.method == 'POST':
         email = request.form.get('email', '').strip()
