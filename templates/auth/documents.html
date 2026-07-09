@@ -158,6 +158,7 @@
     </div>
 
     <form method="POST" enctype="multipart/form-data" id="uploadForm">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" name="doc_type" id="doc_type_input">
       <input type="hidden" name="doc_name" id="doc_name_input">
 

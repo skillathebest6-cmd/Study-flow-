@@ -70,6 +70,7 @@
                             </div>
                             <div class="col-md-3">
                                 <form method="POST" action="{{ url_for('admin.update_service_status', req_id=req.id) }}" class="d-flex gap-2">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <select name="status" class="form-select form-select-sm">
                                         <option value="nouveau" {% if req.status == 'nouveau' %}selected{% endif %}>Nouveau</option>
                                         <option value="en_cours" {% if req.status == 'en_cours' %}selected{% endif %}>En cours</option>

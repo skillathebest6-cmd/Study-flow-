@@ -152,6 +152,7 @@
       {% endwith %}
 
       <form method="POST" id="registerForm">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="section-title">Informations personnelles</div>
         <div class="form-row">
           <div class="form-group">
