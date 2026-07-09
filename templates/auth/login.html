@@ -1,51 +1,217 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudyFlow - Connexion</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background: linear-gradient(135deg, #0D1B3E, #1A56E8); min-height: 100vh; display: flex; align-items: center; }
-        .login-box { background: white; border-radius: 12px; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); max-width: 400px; width: 100%; }
-        .login-box h1 { color: #0D1B3E; font-weight: 700; margin-bottom: 30px; text-align: center; }
-        .form-control { border-radius: 8px; border: 1.5px solid #E2E8F0; padding: 10px 15px; }
-        .form-control:focus { border-color: #1A56E8; box-shadow: 0 0 0 3px rgba(26,86,232,0.1); }
-        .btn-login { background: linear-gradient(135deg, #1A56E8, #2563EB); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; width: 100%; }
-        .btn-login:hover { background: linear-gradient(135deg, #1447CC, #2153DB); }
-        .register-link { text-align: center; margin-top: 20px; }
-        .register-link a { color: #1A56E8; text-decoration: none; font-weight: 600; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyFlow — Connexion</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      background: #F8FAFC;
+    }
+    .left-panel {
+      width: 45%;
+      background: linear-gradient(155deg, #0D1B3E 0%, #1A56E8 60%, #38BDF8 100%);
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      padding: 40px; position: relative; overflow: hidden;
+    }
+    .left-panel::before {
+      content: '';
+      position: absolute; top: -80px; right: -80px;
+      width: 300px; height: 300px; border-radius: 50%;
+      background: rgba(255,255,255,.06);
+    }
+    .left-panel::after {
+      content: '';
+      position: absolute; bottom: -60px; left: -60px;
+      width: 250px; height: 250px; border-radius: 50%;
+      background: rgba(255,255,255,.04);
+    }
+    .left-content { position: relative; z-index: 1; text-align: center; color: #fff; }
+    .logo-box {
+      width: 70px; height: 70px; border-radius: 20px;
+      background: rgba(255,255,255,.15);
+      backdrop-filter: blur(10px);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; margin: 0 auto 24px;
+      border: 1px solid rgba(255,255,255,.2);
+    }
+    .left-title {
+      font-size: 32px; font-weight: 800;
+      line-height: 1.2; margin-bottom: 14px;
+    }
+    .left-sub {
+      font-size: 15px; opacity: .8;
+      line-height: 1.6; max-width: 320px; margin: 0 auto 32px;
+    }
+    .stat-row {
+      display: flex; gap: 20px; justify-content: center;
+    }
+    .stat-box {
+      background: rgba(255,255,255,.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 12px; padding: 14px 20px; text-align: center;
+    }
+    .stat-num { font-size: 24px; font-weight: 800; }
+    .stat-txt { font-size: 11px; opacity: .7; margin-top: 2px; }
+    .right-panel {
+      flex: 1; display: flex; align-items: center;
+      justify-content: center; padding: 40px;
+    }
+    .login-box { width: 100%; max-width: 400px; }
+    .login-title {
+      font-size: 26px; font-weight: 800;
+      color: #0D1B3E; margin-bottom: 6px;
+    }
+    .login-sub { color: #64748B; font-size: 14px; margin-bottom: 28px; }
+    .form-group { margin-bottom: 18px; }
+    .sf-label { font-weight: 600; font-size: 13px; color: #0D1B3E; margin-bottom: 6px; display: block; }
+    .input-wrap { position: relative; }
+    .input-icon {
+      position: absolute; left: 13px; top: 50%;
+      transform: translateY(-50%); color: #94A3B8; font-size: 14px;
+    }
+    .sf-input {
+      width: 100%; padding: 11px 13px 11px 38px;
+      border: 1.5px solid #E2E8F0; border-radius: 10px;
+      font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif;
+      outline: none; transition: border-color .15s;
+      background: #fff;
+    }
+    .sf-input:focus { border-color: #1A56E8; box-shadow: 0 0 0 3px rgba(26,86,232,.1); }
+    .btn-login {
+      width: 100%; padding: 12px;
+      background: linear-gradient(135deg, #1A56E8, #2563EB);
+      color: #fff; border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 700;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      cursor: pointer; transition: all .2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-login:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26,86,232,.35); }
+    .divider {
+      text-align: center; margin: 18px 0;
+      color: #94A3B8; font-size: 13px; position: relative;
+    }
+    .divider::before, .divider::after {
+      content: ''; position: absolute; top: 50%;
+      width: 42%; height: 1px; background: #E2E8F0;
+    }
+    .divider::before { left: 0; }
+    .divider::after { right: 0; }
+    .demo-box {
+      background: #F0F9FF; border: 1px solid #BAE6FD;
+      border-radius: 10px; padding: 14px 16px; margin-bottom: 20px;
+    }
+    .demo-title { font-size: 12px; font-weight: 700; color: #0284C7; margin-bottom: 8px; }
+    .demo-item {
+      display: flex; justify-content: space-between;
+      font-size: 12px; color: #0369A1; padding: 3px 0;
+    }
+    .demo-copy {
+      cursor: pointer; background: none; border: none;
+      color: #0284C7; font-size: 11px; font-weight: 600;
+      padding: 0; font-family: inherit;
+    }
+    .register-link {
+      text-align: center; margin-top: 20px;
+      font-size: 13.5px; color: #64748B;
+    }
+    .register-link a { color: #1A56E8; font-weight: 600; text-decoration: none; }
+    .alert { border-radius: 8px; border: none; font-size: 13px; font-weight: 500; }
+    @media (max-width: 768px) {
+      .left-panel { display: none; }
+      .right-panel { padding: 24px; }
+    }
+  </style>
 </head>
 <body>
-    <div class="login-box">
-        <h1>StudyFlow</h1>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        
-        <form method="POST">
-            <div class="mb-3">
-                <label class="form-label">Email</label>
-                <input type="email" name="email" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Mot de passe</label>
-                <input type="password" name="password" class="form-control" required>
-            </div>
-            <button type="submit" class="btn-login">Se connecter</button>
-        </form>
-        
-        <div class="register-link">
-            Pas encore de compte ? <a href="{{ url_for('auth.register') }}">S'inscrire</a>
+  <div class="left-panel">
+    <div class="left-content">
+      <div class="logo-box"><i class="fas fa-graduation-cap"></i></div>
+      <div class="left-title">Votre avenir<br>commence ici</div>
+      <div class="left-sub">
+        Gérez votre dossier d'études à l'étranger en toute simplicité.
+        France, Canada, Belgique — nous vous accompagnons.
+      </div>
+      <div class="stat-row">
+        <div class="stat-box">
+          <div class="stat-num">2000+</div>
+          <div class="stat-txt">Étudiants</div>
         </div>
+        <div class="stat-box">
+          <div class="stat-num">95%</div>
+          <div class="stat-txt">Visa accordé</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num">3</div>
+          <div class="stat-txt">Pays</div>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <div class="right-panel">
+    <div class="login-box">
+      <div class="login-title">Bon retour 👋</div>
+      <div class="login-sub">Connectez-vous à votre espace personnel</div>
+
+      {% with msgs = get_flashed_messages(with_categories=true) %}
+        {% if msgs %}{% for cat, msg in msgs %}
+          <div class="alert alert-{{ cat }} mb-3">{{ msg }}</div>
+        {% endfor %}{% endif %}
+      {% endwith %}
+
+      <div class="demo-box">
+        <div class="demo-title">🔐 Comptes de démonstration</div>
+        <div class="demo-item">
+          <span><b>Admin :</b> admin@studyflow.com</span>
+          <span>admin2024</span>
+        </div>
+        <div class="demo-item">
+          <span><b>Étudiant :</b> etudiant@studyflow.com</span>
+          <span>etudiant2024</span>
+        </div>
+      </div>
+
+      <form method="POST">
+        <div class="form-group">
+          <label class="sf-label">Adresse email</label>
+          <div class="input-wrap">
+            <i class="fas fa-envelope input-icon"></i>
+            <input type="email" name="email" class="sf-input"
+              placeholder="votre@email.com" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="sf-label">Mot de passe</label>
+          <div class="input-wrap">
+            <i class="fas fa-lock input-icon"></i>
+            <input type="password" name="password" class="sf-input"
+              placeholder="••••••••" required>
+          </div>
+        </div>
+        <button type="submit" class="btn-login">
+          <i class="fas fa-arrow-right-to-bracket"></i>
+          Se connecter
+        </button>
+      </form>
+
+      <div class="register-link">
+        Pas encore de compte ?
+        <a href="{{ url_for('auth.register') }}">Créer un compte</a>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 from models.user import User, StudentProfile, Document, Payment, Notification
-from app import db
+from extensions import db
 from datetime import datetime, timedelta
 import random
 

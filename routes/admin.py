@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from models.user import User, StudentProfile, Document, Payment, Notification
-from app import db
+from extensions import db
 from functools import wraps
 
 admin_bp = Blueprint('admin', __name__)
