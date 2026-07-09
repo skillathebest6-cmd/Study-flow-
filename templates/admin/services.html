@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyFlow Admin - Services</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background: #F8FAFC; }
+        .navbar { background: #0D1B3E; }
+        .navbar a { color: white !important; }
+        .sidebar { background: #0D1B3E; color: white; min-height: 100vh; padding: 20px; }
+        .sidebar a { color: rgba(255,255,255,0.7); text-decoration: none; display: block; padding: 10px; border-radius: 8px; margin-bottom: 5px; }
+        .sidebar a:hover { background: rgba(255,255,255,0.1); color: white; }
+        .sidebar a.active { background: #1A56E8; color: white; }
+        .main-content { padding: 30px; }
+        .request-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .badge-nouveau { background: #64748B; color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; }
+        .badge-en_cours { background: #F59E0B; color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; }
+        .badge-valide { background: #10B981; color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; }
+        .badge-rejete { background: #F43F5E; color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; }
+        select.form-select { border-radius: 8px; border: 1.5px solid #E2E8F0; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('admin.dashboard') }}">StudyFlow Admin</a>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-2 sidebar">
+                <h5>Admin Panel</h5>
+                <a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-chart-line"></i> Dashboard</a>
+                <a href="{{ url_for('admin.students') }}"><i class="fas fa-users"></i> Étudiants</a>
+                <a href="{{ url_for('admin.documents') }}"><i class="fas fa-file"></i> Documents</a>
+                <a href="#" class="active"><i class="fas fa-concierge-bell"></i> Services</a>
+                <a href="{{ url_for('admin.payments') }}"><i class="fas fa-credit-card"></i> Paiements</a>
+            </div>
+
+            <div class="col-md-10 main-content">
+                <h1 style="color: #0D1B3E;">Demandes de Services</h1>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% if requests %}
+                    {% for req in requests %}
+                    <div class="request-card">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <strong>{{ req.service_type|capitalize }}</strong>
+                                <div style="color: #64748B; font-size: 13px;">
+                                    {{ req.student.first_name }} {{ req.student.last_name }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div style="color: #64748B; font-size: 13px;">{{ req.details[:100] }}{% if req.details|length > 100 %}...{% endif %}</div>
+                            </div>
+                            <div class="col-md-2">
+                                <span class="badge-{{ req.status }}">{{ req.status|replace('_', ' ')|capitalize }}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <form method="POST" action="{{ url_for('admin.update_service_status', req_id=req.id) }}" class="d-flex gap-2">
+                                    <select name="status" class="form-select form-select-sm">
+                                        <option value="nouveau" {% if req.status == 'nouveau' %}selected{% endif %}>Nouveau</option>
+                                        <option value="en_cours" {% if req.status == 'en_cours' %}selected{% endif %}>En cours</option>
+                                        <option value="valide" {% if req.status == 'valide' %}selected{% endif %}>Validé</option>
+                                        <option value="rejete" {% if req.status == 'rejete' %}selected{% endif %}>Rejeté</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-primary btn-sm">OK</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color: #64748B;">Aucune demande de service pour le moment.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

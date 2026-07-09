@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
-from models.user import User, StudentProfile, Document, Payment, Notification
+from models.user import User, StudentProfile, Document, Payment, Notification, ServiceRequest
 from extensions import db
 from functools import wraps
 
@@ -157,3 +157,31 @@ def payments():
     return render_template('admin/payments.html',
         payments=all_payments, total=total, pending=pending
     )
+
+@admin_bp.route('/services')
+@login_required
+@admin_required
+def services():
+    requests = ServiceRequest.query.order_by(ServiceRequest.created_at.desc()).all()
+    return render_template('admin/services.html', requests=requests)
+
+@admin_bp.route('/service/<int:req_id>/update', methods=['POST'])
+@login_required
+@admin_required
+def update_service_status(req_id):
+    service_request = ServiceRequest.query.get_or_404(req_id)
+    new_status = request.form.get('status')
+    service_request.status = new_status
+    db.session.commit()
+
+    notif = Notification(
+        user_id=service_request.student.user_id,
+        title=f'Mise à jour: {service_request.service_type}',
+        content=f'Votre demande de {service_request.service_type} est maintenant: {new_status}',
+        type='info'
+    )
+    db.session.add(notif)
+    db.session.commit()
+
+    flash('Statut mis à jour!', 'success')
+    return redirect(url_for('admin.services'))
