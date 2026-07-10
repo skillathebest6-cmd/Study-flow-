@@ -34,13 +34,9 @@
       {% for s in students %}
       <tr>
         <td>
-          {% if current_user.role == 'admin' %}
           <a href="{{ url_for('admin.student_detail', sid=s.id) }}" style="color:#1A56E8;font-weight:600;text-decoration:none;">
             {{ s.full_name }}
           </a>
-          {% else %}
-          <span style="font-weight:600;color:#0D1B3E;">{{ s.full_name }}</span>
-          {% endif %}
         </td>
         <td>{{ s.destination_country or '-' }}</td>
         <td><span class="badge-status bs-{{ s.status }}">{{ s.status }}</span></td>

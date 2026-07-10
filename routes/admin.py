@@ -106,9 +106,14 @@ def students():
 
 @admin_bp.route('/student/<int:sid>')
 @login_required
-@admin_required
+@staff_required
 def student_detail(sid):
     profile = StudentProfile.query.get_or_404(sid)
+
+    if current_user.role == 'agent' and profile.assigned_agent_id != current_user.id:
+        flash('Ce dossier ne vous est pas assigné.', 'danger')
+        return redirect(url_for('admin.my_students'))
+
     docs = Document.query.filter_by(student_id=sid).all()
     payments = Payment.query.filter_by(student_id=sid).all()
     all_agents = User.query.filter_by(role='agent').all()
@@ -121,8 +126,12 @@ def student_detail(sid):
 
 @admin_bp.route('/student/<int:sid>/status', methods=['POST'])
 @login_required
-@admin_required
+@staff_required
 def update_student_status(sid):
+    profile_check = StudentProfile.query.get_or_404(sid)
+    if current_user.role == 'agent' and profile_check.assigned_agent_id != current_user.id:
+        flash('Ce dossier ne vous est pas assigné.', 'danger')
+        return redirect(url_for('admin.my_students'))
     profile = StudentProfile.query.get_or_404(sid)
     new_status = request.form.get('status', profile.status)
     profile.status = new_status
@@ -153,8 +162,12 @@ def update_student_status(sid):
 
 @admin_bp.route('/document/<int:did>/validate', methods=['POST'])
 @login_required
-@admin_required
+@staff_required
 def validate_document(did):
+    doc_check = Document.query.get_or_404(did)
+    if current_user.role == 'agent' and doc_check.student.assigned_agent_id != current_user.id:
+        flash('Ce dossier ne vous est pas assigné.', 'danger')
+        return redirect(url_for('admin.my_students'))
     doc = Document.query.get_or_404(did)
     action = request.form.get('action')
     doc.status = 'validé' if action == 'validate' else 'rejeté'
@@ -326,6 +339,11 @@ def add_note(sid):
     if current_user.role not in ('admin', 'agent'):
         flash('Accès refusé.', 'danger')
         return redirect(url_for('auth.login'))
+
+    profile_check = StudentProfile.query.get_or_404(sid)
+    if current_user.role == 'agent' and profile_check.assigned_agent_id != current_user.id:
+        flash('Ce dossier ne vous est pas assigné.', 'danger')
+        return redirect(url_for('admin.my_students'))
 
     content = request.form.get('content', '').strip()
     if content:
