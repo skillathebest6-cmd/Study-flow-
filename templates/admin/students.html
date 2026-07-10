@@ -37,7 +37,15 @@
     <option value="validé">Validé</option>
     <option value="refusé">Refusé</option>
   </select>
+  <select id="destination" class="sf-input" style="max-width:150px;">
+    <option value="">Toutes destinations</option>
+    <option value="France">France</option>
+    <option value="Canada">Canada</option>
+    <option value="Belgique">Belgique</option>
+  </select>
 </div>
+
+<div id="resultCount" style="color:#64748B;font-size:13px;margin-bottom:12px;"></div>
 
 <div class="sf-card">
   <table class="sf-table">
@@ -53,7 +61,11 @@
     </thead>
     <tbody>
       {% for s in students %}
-      <tr>
+      <tr class="student-row"
+          data-name="{{ s.full_name|lower }}"
+          data-email="{{ (s.user.email if s.user else '')|lower }}"
+          data-status="{{ s.status }}"
+          data-destination="{{ s.destination_country or '' }}">
         <td>{{ s.full_name }}</td>
         <td>{{ s.user.email if s.user else '-' }}</td>
         <td>{{ s.destination_country or '-' }}</td>
@@ -70,4 +82,41 @@
   </table>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterStudents() {
+  const search = document.getElementById('search').value.toLowerCase();
+  const status = document.getElementById('status').value;
+  const destination = document.getElementById('destination').value;
+  const rows = document.querySelectorAll('.student-row');
+  let visibleCount = 0;
+
+  rows.forEach(row => {
+    const name = row.dataset.name;
+    const email = row.dataset.email;
+    const rowStatus = row.dataset.status;
+    const rowDest = row.dataset.destination;
+
+    const matchesSearch = !search || name.includes(search) || email.includes(search);
+    const matchesStatus = !status || rowStatus === status;
+    const matchesDest = !destination || rowDest === destination;
+
+    if (matchesSearch && matchesStatus && matchesDest) {
+      row.style.display = '';
+      visibleCount++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+
+  document.getElementById('resultCount').textContent = visibleCount + ' résultat(s)';
+}
+
+document.getElementById('search').addEventListener('input', filterStudents);
+document.getElementById('status').addEventListener('change', filterStudents);
+document.getElementById('destination').addEventListener('change', filterStudents);
+filterStudents();
+</script>
 {% endblock %}
