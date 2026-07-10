@@ -90,3 +90,18 @@ class ServiceRequest(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     student = db.relationship('StudentProfile', backref='service_requests')
+
+class ActivityLog(db.Model):
+    __tablename__ = 'activity_logs'
+    id = db.Column(db.Integer, primary_key=True)
+    actor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('student_profiles.id'), nullable=True)
+    action = db.Column(db.String(200), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    actor = db.relationship('User', foreign_keys=[actor_id])
+    student = db.relationship('StudentProfile', foreign_keys=[student_id])
+
+    @property
+    def actor_name(self):
+        return self.actor.email if self.actor else 'Système'

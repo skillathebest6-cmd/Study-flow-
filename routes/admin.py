@@ -104,8 +104,10 @@ def student_detail(sid):
     docs = Document.query.filter_by(student_id=sid).all()
     payments = Payment.query.filter_by(student_id=sid).all()
     all_agents = User.query.filter_by(role='agent').all()
+    from models.user import ActivityLog
+    logs = ActivityLog.query.filter_by(student_id=sid).order_by(ActivityLog.created_at.desc()).limit(20).all()
     return render_template('admin/student_detail.html',
-        profile=profile, docs=docs, payments=payments, all_agents=all_agents
+        profile=profile, docs=docs, payments=payments, all_agents=all_agents, logs=logs
     )
 
 @admin_bp.route('/student/<int:sid>/status', methods=['POST'])
@@ -116,6 +118,9 @@ def update_student_status(sid):
     new_status = request.form.get('status', profile.status)
     profile.status = new_status
     db.session.commit()
+    from utils.activity_log import log_activity
+    log_activity(current_user.id, profile.id, f"Statut changé en '{new_status}'")
+
     
     notif = Notification(
         user_id=profile.user_id,
@@ -138,6 +143,9 @@ def validate_document(did):
     doc.status = 'validé' if action == 'validate' else 'rejeté'
     doc.rejection_reason = request.form.get('reason', '')
     db.session.commit()
+    from utils.activity_log import log_activity
+    log_activity(current_user.id, doc.student_id, f"Document '{doc.name}' {doc.status}")
+
     
     student = doc.student
     msg_type = 'success' if action == 'validate' else 'danger'
@@ -253,6 +261,10 @@ def assign_agent(sid):
 
     student.assigned_agent_id = int(agent_id) if agent_id else None
     db.session.commit()
+    agent_email = User.query.get(int(agent_id)).email if agent_id else 'aucun agent'
+    from utils.activity_log import log_activity
+    log_activity(current_user.id, student.id, f"Dossier assigné à {agent_email}")
+
 
     flash('Dossier assigné avec succès.', 'success')
     return redirect(url_for('admin.student_detail', sid=sid))
