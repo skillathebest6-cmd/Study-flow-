@@ -36,6 +36,7 @@ class StudentProfile(db.Model):
     program_level = db.Column(db.String(20), default='Licence')  # Licence, Master
     university = db.Column(db.String(200))
     status = db.Column(db.String(30), default='nouveau')
+    status_updated_at = db.Column(db.DateTime, default=datetime.utcnow)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     documents = db.relationship('Document', backref='student', lazy=True)
     assigned_agent = db.relationship('User', foreign_keys=[assigned_agent_id])

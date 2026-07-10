@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from models.user import User, StudentProfile, Document, Payment, Notification, ServiceRequest
 from extensions import db
 from functools import wraps
+from datetime import datetime, timedelta
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -33,6 +34,12 @@ def dashboard():
     validated = StudentProfile.query.filter_by(status='validé').count()
     pending_docs = Document.query.filter_by(status='en_attente').count()
     total_revenue = db.session.query(db.func.sum(Payment.amount)).filter_by(status='payé').scalar() or 0
+
+    stale_threshold = datetime.utcnow() - timedelta(days=7)
+    stale_students = StudentProfile.query.filter(
+        StudentProfile.status.in_(['nouveau', 'en_cours']),
+        StudentProfile.status_updated_at < stale_threshold
+    ).all()
     
     recent_students = StudentProfile.query.order_by(StudentProfile.created_at.desc()).limit(8).all()
     
@@ -68,7 +75,8 @@ def dashboard():
         chart_status_labels=json_lib.dumps(chart_status_labels),
         chart_status_values=json_lib.dumps(chart_status_values),
         chart_dest_labels=json_lib.dumps(chart_dest_labels),
-        chart_dest_values=json_lib.dumps(chart_dest_values)
+        chart_dest_values=json_lib.dumps(chart_dest_values),
+        stale_students=stale_students
     )
 
 @admin_bp.route('/students')
@@ -118,6 +126,7 @@ def update_student_status(sid):
     profile = StudentProfile.query.get_or_404(sid)
     new_status = request.form.get('status', profile.status)
     profile.status = new_status
+    profile.status_updated_at = datetime.utcnow()
     db.session.commit()
     from utils.activity_log import log_activity
     log_activity(current_user.id, profile.id, f"Statut changé en '{new_status}'")

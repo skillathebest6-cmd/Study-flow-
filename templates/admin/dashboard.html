@@ -32,6 +32,22 @@
 
 {% block content %}
 
+{% if stale_students %}
+<div style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+  <strong style="color:#92400E;"><i class="fas fa-clock"></i> {{ stale_students|length }} dossier(s) sans activité depuis 7 jours ou plus :</strong>
+  <ul style="margin:10px 0 0 20px;color:#92400E;">
+    {% for s in stale_students %}
+    <li>
+      <a href="{{ url_for('admin.student_detail', sid=s.id) }}" style="color:#92400E;font-weight:600;">
+        {{ s.full_name }}
+      </a>
+      — {{ s.destination_country or '-' }} — statut: {{ s.status }}
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
 <!-- STATS -->
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px;">
   <div class="stat-card">
