@@ -269,12 +269,25 @@ def agents():
         flash(f'Agent {first_name} créé avec succès.', 'success')
         return redirect(url_for('admin.agents'))
 
+    from models.user import ActivityLog
+
     all_agents = User.query.filter_by(role='agent').all()
     agent_counts = {}
+    agent_actions = {}
+    agent_last_activity = {}
+
     for agent in all_agents:
         agent_counts[agent.id] = StudentProfile.query.filter_by(assigned_agent_id=agent.id).count()
+        agent_actions[agent.id] = ActivityLog.query.filter_by(actor_id=agent.id).count()
+        last_log = ActivityLog.query.filter_by(actor_id=agent.id).order_by(ActivityLog.created_at.desc()).first()
+        agent_last_activity[agent.id] = last_log.created_at if last_log else None
 
-    return render_template('admin/agents.html', agents=all_agents, agent_counts=agent_counts)
+    return render_template('admin/agents.html',
+        agents=all_agents,
+        agent_counts=agent_counts,
+        agent_actions=agent_actions,
+        agent_last_activity=agent_last_activity
+    )
 
 @admin_bp.route('/student/<int:sid>/assign', methods=['POST'])
 @login_required

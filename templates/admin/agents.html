@@ -63,12 +63,31 @@
     <div style="font-size:15px;font-weight:700;color:#0D1B3E;margin-bottom:16px;">Agents actifs ({{ agents|length }})</div>
     {% if agents %}
       {% for agent in agents %}
-      <div style="padding:14px;background:#F8FAFC;border-radius:10px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
-        <div>
+      <div style="padding:14px;background:#F8FAFC;border-radius:10px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
           <div style="font-weight:600;color:#0D1B3E;">{{ agent.email }}</div>
-          <div style="font-size:12px;color:#64748B;">{{ agent_counts.get(agent.id, 0) }} dossier(s) assigné(s)</div>
+          <span style="background:#EFF6FF;color:#1A56E8;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;">Agent</span>
         </div>
-        <span style="background:#EFF6FF;color:#1A56E8;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;">Agent</span>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
+          <div style="background:white;border-radius:8px;padding:8px;">
+            <div style="font-size:18px;font-weight:700;color:#0D1B3E;">{{ agent_counts.get(agent.id, 0) }}</div>
+            <div style="font-size:11px;color:#94A3B8;">Dossiers</div>
+          </div>
+          <div style="background:white;border-radius:8px;padding:8px;">
+            <div style="font-size:18px;font-weight:700;color:#0D1B3E;">{{ agent_actions.get(agent.id, 0) }}</div>
+            <div style="font-size:11px;color:#94A3B8;">Actions</div>
+          </div>
+          <div style="background:white;border-radius:8px;padding:8px;">
+            <div style="font-size:11px;font-weight:600;color:#0D1B3E;">
+              {% if agent_last_activity.get(agent.id) %}
+                {{ agent_last_activity[agent.id].strftime('%d/%m %H:%M') }}
+              {% else %}
+                Aucune
+              {% endif %}
+            </div>
+            <div style="font-size:11px;color:#94A3B8;">Dernière activité</div>
+          </div>
+        </div>
       </div>
       {% endfor %}
     {% else %}
