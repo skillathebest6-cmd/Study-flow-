@@ -313,3 +313,32 @@ def add_note(sid):
         flash('Note ajoutée.', 'success')
 
     return redirect(url_for('admin.student_detail', sid=sid))
+
+@admin_bp.route('/export/students')
+@login_required
+@admin_required
+def export_students():
+    import csv
+    import io
+    from flask import Response
+
+    students = StudentProfile.query.all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['Nom', 'Prénom', 'Email', 'Téléphone', 'Nationalité', 'Destination', 'Programme', 'Niveau', 'Université', 'Statut', 'Date inscription'])
+
+    for s in students:
+        writer.writerow([
+            s.last_name or '', s.first_name or '', s.user.email, s.phone or '',
+            s.nationality or '', s.destination_country or '', s.program or '',
+            s.program_level or '', s.university or '', s.status,
+            s.created_at.strftime('%d/%m/%Y')
+        ])
+
+    output.seek(0)
+    return Response(
+        output.getvalue(),
+        mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment; filename=studyflow_etudiants.csv'}
+    )

@@ -27,6 +27,9 @@
 
 <div style="margin-bottom:24px;display:flex;gap:12px;">
   <input type="text" id="search" class="sf-input" placeholder="🔍 Chercher par nom ou email" style="flex:1;">
+  <a href="{{ url_for('admin.export_students') }}" class="btn-sf" style="background:#10B981;color:white;white-space:nowrap;text-decoration:none;">
+    <i class="fas fa-file-csv"></i> Exporter CSV
+  </a>
   <select id="status" class="sf-input" style="max-width:150px;">
     <option value="">Tous les statuts</option>
     <option value="nouveau">Nouveau</option>
