@@ -131,6 +131,13 @@ def update_student_status(sid):
     from utils.activity_log import log_activity
     log_activity(current_user.id, profile.id, f"Statut changé en '{new_status}'")
 
+    if current_user.role == 'agent':
+        from utils.admin_notify import notify_admins
+        notify_admins(
+            "Action d'un agent",
+            f"{current_user.email} a changé le statut de {profile.full_name} en '{new_status}'."
+        )
+
     
     notif = Notification(
         user_id=profile.user_id,
@@ -158,6 +165,13 @@ def validate_document(did):
 
     
     student = doc.student
+
+    if current_user.role == 'agent':
+        from utils.admin_notify import notify_admins
+        notify_admins(
+            "Action d'un agent",
+            f"{current_user.email} a {doc.status} le document '{doc.name}' de {student.full_name}."
+        )
     msg_type = 'success' if action == 'validate' else 'danger'
     notif = Notification(
         user_id=student.user_id,
