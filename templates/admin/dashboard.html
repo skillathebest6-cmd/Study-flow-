@@ -166,4 +166,54 @@
   </table>
 </div>
 
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;">
+  <div class="sf-card">
+    <div style="font-size:15px;font-weight:700;color:#0D1B3E;margin-bottom:16px;">Statuts des dossiers</div>
+    <canvas id="statusChart" height="220"></canvas>
+  </div>
+  <div class="sf-card">
+    <div style="font-size:15px;font-weight:700;color:#0D1B3E;margin-bottom:16px;">Répartition par destination</div>
+    <canvas id="destChart" height="220"></canvas>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+new Chart(document.getElementById('statusChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ chart_status_labels|safe }},
+    datasets: [{
+      label: 'Étudiants',
+      data: {{ chart_status_values|safe }},
+      backgroundColor: ['#64748B', '#F59E0B', '#10B981', '#F43F5E'],
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+  }
+});
+
+new Chart(document.getElementById('destChart'), {
+  type: 'doughnut',
+  data: {
+    labels: {{ chart_dest_labels|safe }},
+    datasets: [{
+      data: {{ chart_dest_values|safe }},
+      backgroundColor: ['#1A56E8', '#38BDF8', '#F59E0B'],
+      borderWidth: 0
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'bottom' } }
+  }
+});
+</script>
 {% endblock %}

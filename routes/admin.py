@@ -37,6 +37,14 @@ def dashboard():
         'refusé': StudentProfile.query.filter_by(status='refusé').count(),
     }
     
+    import json as json_lib
+
+    chart_status_labels = list(status_counts.keys())
+    chart_status_values = list(status_counts.values())
+
+    chart_dest_labels = ['France', 'Canada', 'Belgique']
+    chart_dest_values = [dest_france, dest_canada, dest_belgique]
+
     return render_template('admin/dashboard.html',
         total_students=total_students,
         validated=validated,
@@ -46,7 +54,11 @@ def dashboard():
         dest_france=dest_france,
         dest_canada=dest_canada,
         dest_belgique=dest_belgique,
-        status_counts=status_counts
+        status_counts=status_counts,
+        chart_status_labels=json_lib.dumps(chart_status_labels),
+        chart_status_values=json_lib.dumps(chart_status_values),
+        chart_dest_labels=json_lib.dumps(chart_dest_labels),
+        chart_dest_values=json_lib.dumps(chart_dest_values)
     )
 
 @admin_bp.route('/students')
