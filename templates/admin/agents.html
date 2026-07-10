@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Gestion des Agents{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-label">Admin Panel</div>
+<a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">
+  <i class="fas fa-chart-line"></i> Dashboard
+</a>
+<a href="{{ url_for('admin.students') }}" class="sidebar-link">
+  <i class="fas fa-users"></i> Étudiants
+</a>
+<a href="{{ url_for('admin.agents') }}" class="sidebar-link active">
+  <i class="fas fa-user-tie"></i> Agents
+</a>
+<a href="{{ url_for('admin.documents') }}" class="sidebar-link">
+  <i class="fas fa-file"></i> Documents
+</a>
+<a href="{{ url_for('admin.services') }}" class="sidebar-link">
+  <i class="fas fa-concierge-bell"></i> Services
+</a>
+<a href="{{ url_for('admin.payments') }}" class="sidebar-link">
+  <i class="fas fa-credit-card"></i> Paiements
+</a>
+{% endblock %}
+
+{% block page_title %}Gestion des Agents{% endblock %}
+
+{% block content %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<div style="display:grid;grid-template-columns:1fr 1.5fr;gap:20px;">
+
+  <div class="sf-card">
+    <div style="font-size:15px;font-weight:700;color:#0D1B3E;margin-bottom:16px;">Créer un agent</div>
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="mb-3">
+        <label class="sf-label">Nom</label>
+        <input type="text" name="first_name" class="sf-input" required>
+      </div>
+      <div class="mb-3">
+        <label class="sf-label">Email</label>
+        <input type="email" name="email" class="sf-input" required>
+      </div>
+      <div class="mb-3">
+        <label class="sf-label">Mot de passe</label>
+        <input type="password" name="password" class="sf-input" placeholder="Min. 8 caractères" required>
+      </div>
+      <button type="submit" class="btn-sf" style="width:100%;">
+        <i class="fas fa-user-plus"></i> Créer l'agent
+      </button>
+    </form>
+  </div>
+
+  <div class="sf-card">
+    <div style="font-size:15px;font-weight:700;color:#0D1B3E;margin-bottom:16px;">Agents actifs ({{ agents|length }})</div>
+    {% if agents %}
+      {% for agent in agents %}
+      <div style="padding:14px;background:#F8FAFC;border-radius:10px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-weight:600;color:#0D1B3E;">{{ agent.email }}</div>
+          <div style="font-size:12px;color:#64748B;">{{ agent_counts.get(agent.id, 0) }} dossier(s) assigné(s)</div>
+        </div>
+        <span style="background:#EFF6FF;color:#1A56E8;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;">Agent</span>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p style="color:#64748B;">Aucun agent créé pour le moment.</p>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

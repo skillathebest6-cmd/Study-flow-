@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Mes Dossiers{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-label">{% if current_user.role == 'admin' %}Admin Panel{% else %}Espace Agent{% endif %}</div>
+{% if current_user.role == 'admin' %}
+<a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">
+  <i class="fas fa-chart-line"></i> Dashboard
+</a>
+{% endif %}
+<a href="{{ url_for('admin.my_students') }}" class="sidebar-link active">
+  <i class="fas fa-folder-open"></i> Mes Dossiers
+</a>
+{% endblock %}
+
+{% block page_title %}Mes Dossiers{% endblock %}
+
+{% block content %}
+
+<div class="sf-card">
+  <div style="font-size:15px;font-weight:700;color:#0D1B3E;margin-bottom:16px;">
+    {{ students|length }} dossier(s)
+  </div>
+  <table class="sf-table" style="width:100%;">
+    <thead>
+      <tr>
+        <th>Étudiant</th>
+        <th>Destination</th>
+        <th>Statut</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in students %}
+      <tr>
+        <td>
+          {% if current_user.role == 'admin' %}
+          <a href="{{ url_for('admin.student_detail', sid=s.id) }}" style="color:#1A56E8;font-weight:600;text-decoration:none;">
+            {{ s.full_name }}
+          </a>
+          {% else %}
+          <span style="font-weight:600;color:#0D1B3E;">{{ s.full_name }}</span>
+          {% endif %}
+        </td>
+        <td>{{ s.destination_country or '-' }}</td>
+        <td><span class="badge-status bs-{{ s.status }}">{{ s.status }}</span></td>
+        <td>{{ s.created_at.strftime('%d/%m/%Y') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

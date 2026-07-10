@@ -25,6 +25,7 @@ class StudentProfile(db.Model):
     __tablename__ = 'student_profiles'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    assigned_agent_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     first_name = db.Column(db.String(80))
     last_name = db.Column(db.String(80))
     phone = db.Column(db.String(20))
@@ -37,6 +38,7 @@ class StudentProfile(db.Model):
     status = db.Column(db.String(30), default='nouveau')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     documents = db.relationship('Document', backref='student', lazy=True)
+    assigned_agent = db.relationship('User', foreign_keys=[assigned_agent_id])
     payments = db.relationship('Payment', backref='student', lazy=True)
 
     @property

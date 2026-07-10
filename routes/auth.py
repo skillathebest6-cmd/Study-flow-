@@ -24,6 +24,8 @@ def login():
     if current_user.is_authenticated:
         if current_user.role == 'admin':
             return redirect(url_for('admin.dashboard'))
+        if current_user.role == 'agent':
+            return redirect(url_for('admin.my_students'))
         return redirect(url_for('auth.dashboard'))
     
     if request.method == 'POST':
@@ -35,6 +37,8 @@ def login():
             login_user(user, remember=True)
             if user.role == 'admin':
                 return redirect(url_for('admin.dashboard'))
+            if user.role == 'agent':
+                return redirect(url_for('admin.my_students'))
             return redirect(url_for('auth.dashboard'))
         flash('Email ou mot de passe incorrect.', 'danger')
     

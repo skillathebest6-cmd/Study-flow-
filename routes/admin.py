@@ -15,6 +15,16 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated
 
+def staff_required(f):
+    """Autorise admin ET agent"""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.role not in ('admin', 'agent'):
+            flash('Accès refusé.', 'danger')
+            return redirect(url_for('auth.login'))
+        return f(*args, **kwargs)
+    return decorated
+
 @admin_bp.route('/dashboard')
 @login_required
 @admin_required
@@ -93,8 +103,9 @@ def student_detail(sid):
     profile = StudentProfile.query.get_or_404(sid)
     docs = Document.query.filter_by(student_id=sid).all()
     payments = Payment.query.filter_by(student_id=sid).all()
+    all_agents = User.query.filter_by(role='agent').all()
     return render_template('admin/student_detail.html',
-        profile=profile, docs=docs, payments=payments
+        profile=profile, docs=docs, payments=payments, all_agents=all_agents
     )
 
 @admin_bp.route('/student/<int:sid>/status', methods=['POST'])
@@ -200,3 +211,62 @@ def update_service_status(req_id):
 
     flash('Statut mis à jour!', 'success')
     return redirect(url_for('admin.services'))
+
+@admin_bp.route('/agents', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def agents():
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
+        first_name = request.form.get('first_name', '').strip()
+
+        if User.query.filter_by(email=email).first():
+            flash('Un compte avec cet email existe déjà.', 'danger')
+            return redirect(url_for('admin.agents'))
+
+        if len(password) < 8:
+            flash('Le mot de passe doit contenir au moins 8 caractères.', 'danger')
+            return redirect(url_for('admin.agents'))
+
+        agent = User(email=email, role='agent')
+        agent.set_password(password)
+        db.session.add(agent)
+        db.session.commit()
+
+        flash(f'Agent {first_name} créé avec succès.', 'success')
+        return redirect(url_for('admin.agents'))
+
+    all_agents = User.query.filter_by(role='agent').all()
+    agent_counts = {}
+    for agent in all_agents:
+        agent_counts[agent.id] = StudentProfile.query.filter_by(assigned_agent_id=agent.id).count()
+
+    return render_template('admin/agents.html', agents=all_agents, agent_counts=agent_counts)
+
+@admin_bp.route('/student/<int:sid>/assign', methods=['POST'])
+@login_required
+@admin_required
+def assign_agent(sid):
+    student = StudentProfile.query.get_or_404(sid)
+    agent_id = request.form.get('agent_id')
+
+    student.assigned_agent_id = int(agent_id) if agent_id else None
+    db.session.commit()
+
+    flash('Dossier assigné avec succès.', 'success')
+    return redirect(url_for('admin.student_detail', sid=sid))
+
+@admin_bp.route('/my-students')
+@login_required
+def my_students():
+    if current_user.role not in ('admin', 'agent'):
+        flash('Accès refusé.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    if current_user.role == 'admin':
+        my_list = StudentProfile.query.all()
+    else:
+        my_list = StudentProfile.query.filter_by(assigned_agent_id=current_user.id).all()
+
+    return render_template('admin/my_students.html', students=my_list)
