@@ -105,3 +105,13 @@ class ActivityLog(db.Model):
     @property
     def actor_name(self):
         return self.actor.email if self.actor else 'Système'
+
+class InternalNote(db.Model):
+    __tablename__ = 'internal_notes'
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('student_profiles.id'), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    author = db.relationship('User', foreign_keys=[author_id])

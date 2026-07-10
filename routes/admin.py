@@ -104,10 +104,11 @@ def student_detail(sid):
     docs = Document.query.filter_by(student_id=sid).all()
     payments = Payment.query.filter_by(student_id=sid).all()
     all_agents = User.query.filter_by(role='agent').all()
-    from models.user import ActivityLog
+    from models.user import ActivityLog, InternalNote
     logs = ActivityLog.query.filter_by(student_id=sid).order_by(ActivityLog.created_at.desc()).limit(20).all()
+    notes = InternalNote.query.filter_by(student_id=sid).order_by(InternalNote.created_at.desc()).all()
     return render_template('admin/student_detail.html',
-        profile=profile, docs=docs, payments=payments, all_agents=all_agents, logs=logs
+        profile=profile, docs=docs, payments=payments, all_agents=all_agents, logs=logs, notes=notes
     )
 
 @admin_bp.route('/student/<int:sid>/status', methods=['POST'])
@@ -282,3 +283,24 @@ def my_students():
         my_list = StudentProfile.query.filter_by(assigned_agent_id=current_user.id).all()
 
     return render_template('admin/my_students.html', students=my_list)
+
+@admin_bp.route('/student/<int:sid>/note', methods=['POST'])
+@login_required
+def add_note(sid):
+    if current_user.role not in ('admin', 'agent'):
+        flash('Accès refusé.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    content = request.form.get('content', '').strip()
+    if content:
+        from models.user import InternalNote
+        note = InternalNote(student_id=sid, author_id=current_user.id, content=content)
+        db.session.add(note)
+        db.session.commit()
+
+        from utils.activity_log import log_activity
+        log_activity(current_user.id, sid, "Note interne ajoutée")
+
+        flash('Note ajoutée.', 'success')
+
+    return redirect(url_for('admin.student_detail', sid=sid))
