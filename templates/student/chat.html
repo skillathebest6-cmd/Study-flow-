@@ -87,7 +87,10 @@ function sendMessage() {
 
   fetch('{{ url_for("auth.chat") }}', {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token() }}'
+    },
     body: JSON.stringify({message: message})
   })
   .then(res => res.json())

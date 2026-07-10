@@ -1,7 +1,6 @@
 import os
 import requests
 
-GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 def get_student_context(student):
@@ -33,6 +32,7 @@ Paiements en attente: {len(pending_payments)}
 
 def chat_with_ai(student, message):
     """Envoie un message à l'IA (Groq) avec le contexte de l'étudiant"""
+    GROQ_API_KEY = os.getenv('GROQ_API_KEY')
     if not GROQ_API_KEY:
         return "Le support IA n'est pas encore configuré. Contactez l'administrateur."
 
@@ -72,4 +72,5 @@ Règles:
         data = response.json()
         return data['choices'][0]['message']['content']
     except Exception as e:
+        print(f"ERREUR CHATBOT: {e}")
         return f"Désolé, une erreur est survenue. Veuillez réessayer plus tard."
